@@ -10,119 +10,200 @@ class Auths
         $this->authSql = new AuthSql();
     }
 
+    public function putAuth($params)
+    {
+//        var_dump($params);
+//        $params = explode('/',$params);
+//        $paramsCount = count($params);
+        if($params == false)
+        {
+//        var_dump(1235);
+            $putStr = file_get_contents('php://input');
+            $generateParams = new GenerateParams();
+            $putData = $generateParams->generatePutData($putStr);
+//            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
+//            {
+//                $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'], $_COOKIE['id']);
+//            }
+//            if($checkResult !=0)
+//            {
+                if(is_string($putData['login']) && is_string($putData['password']))
+                {
+                    $role = $this->authSql->checkUser($putData['login'],$putData['password']);
+
+                    if($role != null)
+                    {
+                        $generateParams = new GenerateParams();
+                        $hash = md5($generateParams->generateCode(10));
+                        setcookie("hash", $hash, time()+3600);
+                        $result['role'] = $role;
+                        $result['err'] = null;
+                    }else
+                    {
+                        $result['err'] = WRONG_PASS;
+                    }
+                }else
+                {
+                    $result['err'] = WRONG_DATA;
+                }
+//            }else
+//            {
+//                $result = INTRUDER;
+//            }
+        }else
+        {
+            $result['err'] = INTRUDER;
+        }
+
+//        if($params != false)
+//        {
+//            if ($params[0] !== 'undefined' && $params[1] !== 'undefined') {
+//                $idHash = $this->authSql->getIdHashByCookieId($params[0]);
+//                if (($idHash[0]['hash'] !== $params[1]) || ($idHash[0]['id'] !== $params[0]))
+//                {
+//                    $result = false;
+//                } else {
+//                    $result = true;
+//                }
+//            } else {
+//                $result = false;
+//            }
+//        }
+        return $result;
+    }
+
     public function postAuth($params)
     {
         if($params == false)
         {
-            $login = json_decode($_POST['login']);
-            $password = json_decode($_POST['password']);
-            $name = json_decode($_POST['name']);
-            $surname = json_decode($_POST['surname']);
-            $phone = json_decode($_POST['phone']);
-            $email = json_decode($_POST['email']);
-            $isActive = json_decode($_POST['isActive']);
-            if($isActive == null)
+
+            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
             {
-                $isActive = 1;
-            }
-            $discount = json_decode($_POST['discount']);
-            if($discount == null)
-            {
-                $discount = '0';
-            }
-            $role = json_decode($_POST['role']);
-            if($role == null)
-            {
-                $role = 'user';
-            }
-            $checkLoginResult = $this->authSql->checkUserLogin($login);
-            $err = '';
+                $checkResult = $this->authSql->checkAdmin($_COOKIE['hash'],$_COOKIE['id']);
 
-            if ($checkLoginResult > 0) {
-                $err = "login already exists";
-            }
+                if($checkResult !=0)
+                {
+                    $login = json_decode($_POST['login']);
+                    $password = md5(md5(json_decode($_POST['password'])));
+                    $name = json_decode($_POST['name']);
+                    $email = json_decode($_POST['email']);
+                    $checkLogin = $this->authSql->checkUserLogin($login);
 
-            if ($err === '') {
-                $password = md5(md5($password));
-                $result = $this->authSql->createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role);
-            } else {
-                $result = $err;
-            }
-        }
-
-        return $result;
-    }
-
-    public function putAuth($params)
-    {
-        if($params == false)
-        {
-            $putStr = file_get_contents('php://input');
-            $generatePutData = new GenerateData();
-            $putData = $generatePutData->generatePutData($putStr);
-            $idPasswordRoleActive = $this->authSql->getIdPassRoleActiveByLogin($putData['login']);
-            if ($idPasswordRoleActive[0]['password'] === md5(md5($putData['password']))) {
-                $hash = md5($this->generateCode(10));
-
-                $result = $this->authSql->setNewHash($hash, $idPasswordRoleActive[0]['id']);
-                if ($result == true) {
-                    $result =[];
-                    $result['id'] = $idPasswordRoleActive[0]['id'];
-                    $result['hash'] = $hash;
-                    $result['role'] = $idPasswordRoleActive[0]['role'];
-
-                    if($idPasswordRoleActive[0]['isActive'] != true)
+                    if(is_string($name) && is_string($name) && is_string($password) &&
+                        filter_var($email, FILTER_VALIDATE_EMAIL) && $checkLogin != 0)
                     {
-                        $result = 'Sorry your account is Not Active';
+                        $result = $this->authSql->createNewUser($name,$email,$login,$password);
+                    }else
+                    {
+                        $result = WRONG_DATA;
                     }
                 }else
                 {
-                    $result = false;
+                    $result = INTRUDER;
                 }
-            } else {
-                $result = "wrong password";
             }
+//            if($isActive == null)
+//            {
+//                $isActive = 1;
+//            }
+//            $discount = json_decode($_POST['discount']);
+//            if($discount == null)
+//            {
+//                $discount = '0';
+//            }
+//            $role = json_decode($_POST['role']);
+//            if($role == null)
+//            {
+//                $role = 'user';
+//            }
+//            $checkLoginResult = $this->authSql->checkUserLogin($login);
+//            $err = '';
+//
+//            if ($checkLoginResult > 0) {
+//                $err = "login already exists";
+//            }
+//
+//            if ($err === '') {
+//                $password = md5(md5($password));
+//                $result = $this->authSql->createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role);
+//            } else {
+//                $result = $err;
+//            }
         }
+
         return $result;
-
     }
 
-    public function getAuth($params)
-    {
-        $params = explode('/',$params);
-        $paramsCount = count($params);
-        if($paramsCount > 2 || $paramsCount < 2)
-        {
-            return false;
-        }
-
-        if($params != false)
-        {
-            if ($params[0] !== 'undefined' && $params[1] !== 'undefined') {
-                $idHash = $this->authSql->getIdHashByCookieId($params[0]);
-                if (($idHash[0]['hash'] !== $params[1]) || ($idHash[0]['id'] !== $params[0]))
-                {
-                    $result = false;
-                } else {
-                    $result = true;
-                }
-            } else {
-                $result = false;
-            }
-        }
-        return $result;
-    }
-
-    private function generateCode($length = 6)
-    {
-        $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHI JKLMNOPRQSTUVWXYZ0123456789";
-        $code = "";
-        $clen = strlen($chars) - 1;
-        while (strlen($code) < $length) {
-            $code .= $chars[mt_rand(0, $clen)];
-        }
-
-        return $code;
-    }
+//    public function putAuth($params)
+//    {
+//        if($params == false)
+//        {
+//            $putStr = file_get_contents('php://input');
+//            $generatePutData = new GenerateData();
+//            $putData = $generatePutData->generatePutData($putStr);
+//            $idPasswordRoleActive = $this->authSql->getIdPassRoleActiveByLogin($putData['login']);
+//            if ($idPasswordRoleActive[0]['password'] === md5(md5($putData['password']))) {
+//                $hash = md5($this->generateCode(10));
+//
+//                $result = $this->authSql->setNewHash($hash, $idPasswordRoleActive[0]['id']);
+//                if ($result == true) {
+//                    $result =[];
+//                    $result['id'] = $idPasswordRoleActive[0]['id'];
+//                    $result['hash'] = $hash;
+//                    $result['role'] = $idPasswordRoleActive[0]['role'];
+//
+//                    if($idPasswordRoleActive[0]['isActive'] != true)
+//                    {
+//                        $result = 'Sorry your account is Not Active';
+//                    }
+//                }else
+//                {
+//                    $result = false;
+//                }
+//            } else {
+//                $result = "wrong password";
+//            }
+//        }
+//        return $result;
+//
+//    }
+//
+//    public function getAuth($params)
+//    {
+//        $params = explode('/',$params);
+//        $paramsCount = count($params);
+//        if($paramsCount > 2 || $paramsCount < 2)
+//        {
+//            return false;
+//        }
+//
+//        if($params != false)
+//        {
+//            if ($params[0] !== 'undefined' && $params[1] !== 'undefined') {
+//                $idHash = $this->authSql->getIdHashByCookieId($params[0]);
+//                if (($idHash[0]['hash'] !== $params[1]) || ($idHash[0]['id'] !== $params[0]))
+//                {
+//                    $result = false;
+//                } else {
+//                    $result = true;
+//                }
+//            } else {
+//                $result = false;
+//            }
+//        }
+//        return $result;
+//    }
+//
+//    private function generateCode($length = 6)
+//    {
+//        $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHI JKLMNOPRQSTUVWXYZ0123456789";
+//        $code = "";
+//        $clen = strlen($chars) - 1;
+//        while (strlen($code) < $length) {
+//            $code .= $chars[mt_rand(0, $clen)];
+//        }
+//
+//        return $code;
+//    }
 
 }

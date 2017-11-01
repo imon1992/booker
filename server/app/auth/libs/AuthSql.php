@@ -6,91 +6,109 @@ class AuthSql
 
     public function __construct()
     {
-        $baseAndHostDbName = MY_SQL_DB . ':host=' . MY_SQL_HOST . '; dbname=' . MY_SQL_DB_NAME;
-        try {
-            $this->dbConnect = new PDO($baseAndHostDbName, MY_SQL_USER, MY_SQL_PASSWORD);
-            $this->dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            $this->dbConect = 'connect error';
-        }
+        $this->dbConnect=DbConnection::getInstance();
     }
 
-    public function createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role)
+//    public function createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role)
+//    {
+//        if($this->dbConnect !== 'connect error')
+//        {
+//            $stmt =$this->dbConnect->prepare('INSERT INTO client(name,surname,phone,email,login,password,discount,isActive,role)
+//                VALUES(:name,:surname,:phone,:email,:login,:password,:discount,:isActive,:role)');
+//            $stmt->bindParam(':name',$name);
+//            $stmt->bindParam(':surname',$surname);
+//            $stmt->bindParam(':phone',$phone);
+//            $stmt->bindParam(':email',$email);
+//            $stmt->bindParam(':login',$login);
+//            $stmt->bindParam(':password',$password);
+//            $stmt->bindParam(':discount',$discount);
+//            $stmt->bindParam(':isActive',$isActive);
+//            $stmt->bindParam(':role',$role);
+//
+//            $result = $stmt->execute();
+//            return $result;
+//        }else
+//        {
+//            return 'error';
+//        }
+//    }
+//
+//    public function getIdPassRoleActiveByLogin($login)
+//    {
+//        if($this->dbConnect !== 'connect error')
+//        {
+//            $stmt =$this->dbConnect->prepare('SELECT id,password,role,isActive
+//                FROM client
+//                WHERE login=:login');
+//
+//            $stmt->bindParam(':login',$login);
+//            $stmt->execute();
+//            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+//            {
+//                $result[]=$assocRow;
+//            }
+//            return $result;
+//        }else
+//            {
+//                return 'error';
+//            }
+//    }
+
+//    public function getIdHashByCookieId($id)
+//    {
+//        if($this->dbConnect !== 'connect error')
+//        {
+//            $stmt =$this->dbConnect->prepare('SELECT hash,id
+//                FROM client
+//                WHERE id=:id');
+//
+//            $stmt->bindParam(':id',$id);
+//            $stmt->execute();
+//            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+//            {
+//                $result[]=$assocRow;
+//            }
+//            return $result;
+//        }else
+//            {
+//                return 'error';
+//            }
+//    }
+
+    public function setNewHash($hash,$login,$password)
     {
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('INSERT INTO client(name,surname,phone,email,login,password,discount,isActive,role)
-                VALUES(:name,:surname,:phone,:email,:login,:password,:discount,:isActive,:role)');
+            $stmt =$this->dbConnect->prepare('UPDATE bookerUsers
+                SET hash= :hash
+                WHERE login = :login AND password = :password');
+
+            $stmt->bindParam(':hash',$hash);
+            $stmt->bindParam(':login',$login);
+            $stmt->bindParam(':password',$password);
+            $result = $stmt->execute();
+        }else
+        {
+            $result = false;
+        }
+        return $result;
+    }
+
+    public function createNewUser($name,$email,$login,$password,$role = 'user')
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+            INSERT INTO bookerUsers(name, email, login, password, role)
+            VALUES (:name,:email,:login,:password,
+            (SELECT id from roles WHERE role = :role))
+                ');
             $stmt->bindParam(':name',$name);
-            $stmt->bindParam(':surname',$surname);
-            $stmt->bindParam(':phone',$phone);
             $stmt->bindParam(':email',$email);
             $stmt->bindParam(':login',$login);
             $stmt->bindParam(':password',$password);
-            $stmt->bindParam(':discount',$discount);
-            $stmt->bindParam(':isActive',$isActive);
             $stmt->bindParam(':role',$role);
 
-            $result = $stmt->execute();
-            return $result;
-        }else
-        {
-            return 'error';
-        }
-    }
-
-    public function getIdPassRoleActiveByLogin($login)
-    {
-        if($this->dbConnect !== 'connect error')
-        {
-            $stmt =$this->dbConnect->prepare('SELECT id,password,role,isActive
-                FROM client
-                WHERE login=:login');
-
-            $stmt->bindParam(':login',$login);
-            $stmt->execute();
-            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-            {
-                $result[]=$assocRow;
-            }
-            return $result;
-        }else
-            {
-                return 'error';
-            }
-    }
-
-    public function getIdHashByCookieId($id)
-    {
-        if($this->dbConnect !== 'connect error')
-        {
-            $stmt =$this->dbConnect->prepare('SELECT hash,id
-                FROM client
-                WHERE id=:id');
-
-            $stmt->bindParam(':id',$id);
-            $stmt->execute();
-            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-            {
-                $result[]=$assocRow;
-            }
-            return $result;
-        }else
-            {
-                return 'error';
-            }
-    }
-
-    public function setNewHash($hash,$id)
-    {
-        if($this->dbConnect !== 'connect error')
-        {
-            $stmt =$this->dbConnect->prepare('UPDATE client
-                SET hash= :hash
-                WHERE id=:id');
-
-            $stmt->bindParam(':hash',$hash);
-            $stmt->bindParam(':id',$id);
             $result = $stmt->execute();
             return $result;
         }else
@@ -103,19 +121,23 @@ class AuthSql
     {
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT id
-                FROM client
-                WHERE login=:login AND password=:password');
+            $stmt =$this->dbConnect->prepare('SELECT r.role
+                FROM bookerUsers as b
+                INNER JOIN roles as r on r.id = b.role
+                WHERE b.login=:login AND b.password=:password');
 
             $stmt->bindParam(':login',$login);
             $stmt->bindParam(':password',$password);
             $stmt->execute();
-            $result = $stmt->rowCount();
-            return $result;
+            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            {
+                $result=$assocRow['role'];
+            }
         }else
         {
-            return 'error';
+            $result =  false;
         }
+            return $result;
     }
 
     public function checkUserLogin($login)
@@ -123,53 +145,58 @@ class AuthSql
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
-                FROM client
+                FROM bookerUsers
                 WHERE login=:login');
 
             $stmt->bindParam(':login',$login);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['COUNT(id)'];
+            $result =  $result['COUNT(id)'];
         }else
         {
-            return 'error';
+            $result = false;
         }
+        return $result;
     }
 
-    public function checkAdminHash($hash)
+    public function checkAdmin($hash,$id)
     {
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
-                FROM client
-                WHERE hash=:hash AND role=\'admin\'');
+                FROM bookerUsers
+                WHERE hash=:hash AND id:=:id
+                ');
 
             $stmt->bindParam(':hash',$hash);
+            $stmt->bindParam(':id',$id);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['COUNT(id)'];
+            $result = $result['COUNT(id)'];
         }else
         {
-            return 'error';
+            $result = false;
         }
+        return $result;
     }
-
-    public function checkUserHash($hash,$id)
+//
+    public function checkUserOrAdmin($hash,$id)
     {
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
-                FROM client
+                FROM bookerUsers
                 WHERE hash=:hash AND id=:id');
 
             $stmt->bindParam(':hash',$hash);
             $stmt->bindParam(':id',$id);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['COUNT(id)'];
+            $result = $result['COUNT(id)'];
         }else
         {
-            return 'error';
+            $result = false;
         }
+        return $result;
     }
 }

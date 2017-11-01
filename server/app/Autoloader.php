@@ -23,10 +23,12 @@ class Autoloader
         '../app/orderStatus/',
         '../app/event/libs/',
         '../app/event/',
-        '../app/'];
+        '../app/',
+        '../app/libs/'];
 
     public static function loadPackages($className)
     {
+//        var_dump($className);
         foreach(self::$classWay as $way)
         {
             if(file_exists($way.$className.'.php'))
