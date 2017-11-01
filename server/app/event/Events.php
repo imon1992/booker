@@ -14,9 +14,13 @@ class Events
     {
         $params = explode('/',$params);
         $paramsCount = count($params);
-        if($paramsCount == 2)
+        if($paramsCount == 3)
         {
-            $result = $this->eventSql->getEventsByMonth($params[0],$params[1]);
+            //var_dump($params);
+            $result = $this->eventSql->getEventsByMonth($params[0],$params[1],$params[2]);
+        }elseif($paramsCount == 4)
+        {
+            $result = $this->eventSql->getEventInfo($params[0],$params[1],$params[2],$params[3]);
         }
         return $result;
     }

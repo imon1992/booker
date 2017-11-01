@@ -17,17 +17,42 @@ class EventSql
         }
     }
 
-    public function getEventsByMonth($firstDate,$lastDate)
+    public function getEventInfo($bedrommId,$userId,$eventId,$starttime)
+    {
+        if($this->dbConnect !== 'connect error')
+         {
+             $stmt =$this->dbConnect->prepare('
+                 SELECT e.description,e.timeOfcreate,et.startTime,et.endTime,bu.name from events as e
+                 INNER JOIN eventsTime as et on et.event_id = e.id
+                 INNER JOIN bookerUsers as bu on bu.id = user_id
+                 WHERE bu.id = :userId and et.event_id = :eventId and e.badroom_id = :bedroomId and et.startTime = :startTime
+                 ');
+             $stmt->bindParam(':userId',$userId);
+$stmt->bindParam(':eventId',$eventId);
+$stmt->bindParam(':bedroomId',$bedrommId);
+$stmt->bindParam(':startTime',$starttime);
+$stmt->execute();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+         }else
+        {
+        $result = false;
+        }
+
+        return $result;
+    }
+
+    public function getEventsByMonth($firstDate,$lastDate,$id)
     {
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('
             SELECT e.id,e.user_id,e.badroom_id,e.date,et.startTime,et.endTime FROM events as e
             INNER JOIN eventsTime as et on et.event_id = e.id
-            where e.date BETWEEN :firstDate AND :lastDate
+            where e.date BETWEEN :firstDate AND :lastDate AND badroom_id = :id 
             ');
             $stmt->bindParam(':firstDate',$firstDate);
             $stmt->bindParam(':lastDate',$lastDate);
+            $stmt->bindParam(':id',$id);
 
             $stmt->execute();
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -226,5 +251,5 @@ class EventSql
 }
 
 
-$c = new EventSql();
-$c->getEventsByMonth('2017-10-01','2017-10-31');
+//$c = new EventSql();
+//$c->getEventsByMonth('2017-10-01','2017-10-31');
