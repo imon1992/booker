@@ -29,15 +29,17 @@ class Auths
 //            {
                 if(is_string($putData['login']) && is_string($putData['password']))
                 {
-                    $role = $this->authSql->checkUser($putData['login'],$putData['password']);
-
-                    if($role != null)
+                    $roleId = $this->authSql->checkUser($putData['login'],$putData['password']);
+//var_dump($roleIdId);
+                    if($roleId['id'] != null)
                     {
                         $generateParams = new GenerateParams();
                         $hash = md5($generateParams->generateCode(10));
-                        setcookie("hash", $hash, time()+3600);
-                        $result['role'] = $role;
+//                        setcookie("hash", $hash, time()+3600);
+                        $result['role'] = $roleId['role'];
                         $result['err'] = null;
+                        $result['hash'] = $hash;
+                        $result['id'] = $roleId['id'];
                     }else
                     {
                         $result['err'] = WRONG_PASS;
@@ -97,10 +99,10 @@ class Auths
                     {
                         $result = WRONG_DATA;
                     }
-                }else
-                {
-                    $result = INTRUDER;
                 }
+            }else
+            {
+                $result = INTRUDER;
             }
 //            if($isActive == null)
 //            {
@@ -111,10 +113,10 @@ class Auths
 //            {
 //                $discount = '0';
 //            }
-//            $role = json_decode($_POST['role']);
-//            if($role == null)
+//            $roleIdId = json_decode($_POST['role']);
+//            if($roleIdId == null)
 //            {
-//                $role = 'user';
+//                $roleIdId = 'user';
 //            }
 //            $checkLoginResult = $this->authSql->checkUserLogin($login);
 //            $err = '';
@@ -125,7 +127,7 @@ class Auths
 //
 //            if ($err === '') {
 //                $password = md5(md5($password));
-//                $result = $this->authSql->createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role);
+//                $result = $this->authSql->createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$roleIdId);
 //            } else {
 //                $result = $err;
 //            }

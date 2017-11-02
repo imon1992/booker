@@ -21,8 +21,8 @@ class UserSql
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT id,name,surname
-                                                FROM client
+            $stmt =$this->dbConnect->prepare('SELECT id,name
+                                                FROM bookerUsers
                                             ');
             $stmt->execute();
             while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
@@ -31,7 +31,7 @@ class UserSql
             }
         }else
         {
-            $result = 'error';
+            $result = false;
         }
 
         return $result;

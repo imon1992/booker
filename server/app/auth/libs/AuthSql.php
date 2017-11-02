@@ -121,7 +121,7 @@ class AuthSql
     {
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT r.role
+            $stmt =$this->dbConnect->prepare('SELECT r.role,b.id
                 FROM bookerUsers as b
                 INNER JOIN roles as r on r.id = b.role
                 WHERE b.login=:login AND b.password=:password');
@@ -131,7 +131,8 @@ class AuthSql
             $stmt->execute();
             while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
-                $result=$assocRow['role'];
+                $result['id']=$assocRow['id'];
+                $result['role']=$assocRow['role'];
             }
         }else
         {

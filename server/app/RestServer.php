@@ -62,6 +62,11 @@ class RestServer
             {
                 $this->sendHeaders(403);
             }
+//            if($result['hash'] && $result['id'])
+//            {
+//                setcookie("id", $result['id'], time()+3600);
+//                setcookie("hash", $result['hash'], time()+3600);
+//            }
             return $result;
         } else {
             $this->sendHeaders(501);
