@@ -27,7 +27,7 @@ class UserSql
             $stmt->execute();
             while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
-                $result[$assocRow['id']] = $assocRow;
+                $result[] = $assocRow;
             }
         }else
         {
@@ -42,19 +42,19 @@ class UserSql
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT c.id,c.name,c.surname,c.phone,c.email,c.login,c.discount,c.role,c.isActive
-                FROM client as c
+            $stmt =$this->dbConnect->prepare('SELECT id, name 
+                FROM bookerUsers 
                 WHERE id=:id
                 ');
             $stmt->bindParam(':id',$id);
             $stmt->execute();
             while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
-                $result[$assocRow['id']] = $assocRow;
+                $result[] = $assocRow;
             }
         }else
         {
-            $result = 'error';
+            $result = false;
         }
 
         return $result;

@@ -22,20 +22,25 @@ class Users
 //        var_dump($paramsCount);
 //        return $_COOKIE;
         if($paramsCount == 1 && empty($params[0])){
-            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
-            {
-                $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'], $_COOKIE['id']);
-                if($checkResult !=0)
-                {
+            //if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
+            //{
+                //$checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'], $_COOKIE['id']);
+                //if($checkResult !=0)
+                //{
                     $result  = $this->userSql->getUsers();
-                }
-            } else
-            {
-                $result = INTRUDER;
-            }
+              //  }
+            //} else
+            //{
+             //   $result = INTRUDER;
+            //}
+        } elseif($paramsCount == 1 && !empty($params[0]))
+        {
+        $result  = $this->userSql->getUserById($params[0]);
         } else {
             $result = WRONG_DATA;
         }
+
+
         return $result;
 //        if($params == false)
 //        {
