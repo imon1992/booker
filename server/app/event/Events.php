@@ -37,22 +37,27 @@ class Events
             $recursive = json_decode($_POST['recursive']);
             $timeStart = json_decode($_POST['timeStart']);
             $timeEnd = json_decode($_POST['timeEnd']);
+            $repetitionCount = json_decode($_POST['repetitionCount']);
+            $timeZone = json_decode($_POST['timeZone']);
             $checkDates = [];
             array_push($checkDates,$date);
-            if($recursive == 'weekly')
+            //return $_POST;
+            $timeZone =  timezone_name_from_abbr('',($timeZone*60)*-1,0);
+            date_default_timezone_set($timeZone);
+            if($recursive == 'weekli')
             {
                 $date = date_create($date);
                 $recursive = 1;
-                for($i = 1; $i <=4;$i++)
+                for($i = 1; $i <=$repetitionCount;$i++)
                 {
                     date_modify($date, '1 week');
                     array_push($checkDates,date_format($date, 'Y-m-d'));
                 }
-            } elseif ($recursive == 'bi-weekly')
+            } elseif ($recursive == 'bi-weekli')
             {
                 $date = date_create($date);
                 $recursive = 1;
-                for($i = 1; $i <=2;$i++)
+                for($i = 1; $i <=$repetitionCount;$i++)
                 {
                     date_modify($date, '2 week');
                     array_push($checkDates,date_format($date, 'Y-m-d'));
@@ -67,10 +72,12 @@ class Events
             {
                 $recursive = 0;
             }
-
+            //return date_format($date, 'Y-m-d');
+            //return $checkDates;
+//var_dump($checkDates);
 
             $busyDates = $this->eventSql->checkEventDateTime($checkDates,$timeStart,$timeEnd);
-
+//return $bussyDates;
             foreach($checkDates as $kay=>$val)
             {
                 if($busyDates[$kay]['date'] != $val)
@@ -78,9 +85,12 @@ class Events
                     $insertDates[] = $val;
                 }
             }
-
+            //return $insertDates;
+//            var_dump($insertDates);
+//var_dump(!empty($insertDates));
             if(!empty($insertDates))
             {
+                //echo '111';
                 $insertIds = $this->eventSql->addNewEvent($userId,$boardRoom,$description,$insertDates,$timeOfCreate,$recursive);
                 $this->eventSql->addEventTime($insertIds,$timeStart,$timeEnd);
 

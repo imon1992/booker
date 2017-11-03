@@ -155,6 +155,7 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                  ');
             foreach($dates as &$date)
             {
+                //var_dump($date);
                 $stmt->bindParam(':date',$date);
                 $stmt->bindParam(':timeStart',$timeStart);
                 $stmt->bindParam(':timeEnd',$timeEnd);
