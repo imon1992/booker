@@ -21,7 +21,7 @@ class UserSql
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT id,name
+            $stmt =$this->dbConnect->prepare('SELECT id,name,isActive
                                                 FROM bookerUsers
                                             ');
             $stmt->execute();

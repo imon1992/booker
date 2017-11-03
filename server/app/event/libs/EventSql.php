@@ -8,13 +8,7 @@ class EventSql
 
     public function __construct()
     {
-        $baseAndHostDbName = MY_SQL_DB . ':host=' . MY_SQL_HOST . '; dbname=' . MY_SQL_DB_NAME;
-        try {
-            $this->dbConnect = new PDO($baseAndHostDbName, MY_SQL_USER, MY_SQL_PASSWORD);
-            $this->dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            $this->dbConect = 'connect error';
-        }
+        $this->dbConnect=DbConnection::getInstance();
     }
 
     public function getEventInfo($bedrommId,$userId,$eventId,$starttime)
@@ -22,14 +16,14 @@ class EventSql
         if($this->dbConnect !== 'connect error')
          {
              $stmt =$this->dbConnect->prepare('
-                 SELECT e.description,e.timeOfcreate,et.startTime,et.endTime,bu.name from events as e
+                 SELECT e.description,e.timeOfCreate,et.startTime,et.endTime,bu.name from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  INNER JOIN bookerUsers as bu on bu.id = user_id
-                 WHERE bu.id = :userId and et.event_id = :eventId and e.badroom_id = :bedroomId and et.startTime = :startTime
+                 WHERE bu.id = :userId and et.event_id = :eventId and e.boardroom_id = :boardroomId and et.startTime = :startTime
                  ');
              $stmt->bindParam(':userId',$userId);
 $stmt->bindParam(':eventId',$eventId);
-$stmt->bindParam(':bedroomId',$bedrommId);
+$stmt->bindParam(':boardroomId',$bedrommId);
 $stmt->bindParam(':startTime',$starttime);
 $stmt->execute();
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -46,9 +40,9 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('
-            SELECT e.id,e.user_id,e.badroom_id,e.date,et.startTime,et.endTime FROM events as e
+            SELECT e.id,e.user_id,e.boardroom_id,e.date,et.startTime,et.endTime FROM events as e
             INNER JOIN eventsTime as et on et.event_id = e.id
-            where e.date BETWEEN :firstDate AND :lastDate AND badroom_id = :id 
+            where e.date BETWEEN :firstDate AND :lastDate AND boardroom_id = :id
             ');
             $stmt->bindParam(':firstDate',$firstDate);
             $stmt->bindParam(':lastDate',$lastDate);
@@ -88,6 +82,96 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         {
             $result = false;
         }
+        return $result;
+    }
+
+    public function addNewEvent($userId,$boardRoom,$description,$dates,$timeOfCreate,$recursive)
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                 INSERT INTO events(user_id,boardroom_id,description,date,timeOfCreate,recursive)
+                 VALUES(:userId,:roomId,:desc,:date,:timeOfCreate,:recursive)
+                 ');
+
+            foreach($dates as &$date)
+            {
+                $stmt->bindParam(':userId',$userId);
+                $stmt->bindParam(':roomId',$boardRoom);
+                $stmt->bindParam(':desc',$description);
+                $stmt->bindParam(':date',$date);
+                $stmt->bindParam(':timeOfCreate',$timeOfCreate);
+                $stmt->bindParam(':recursive',$recursive);
+                if($stmt->execute())
+                {
+                    $result[] = $this->dbConnect->lastInsertId();
+                } else
+                {
+                    $result = false;
+                }
+            }
+        }else
+        {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    public function addEventTime($ids,$startTime,$endTime)
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                 INSERT INTO eventsTime(event_id,startTime,endTime)
+                 VALUES(:eventId,:startTime,:endTime)
+                 ');
+
+            foreach($ids as &$id)
+            {
+                $stmt->bindParam(':eventId',$id);
+                $stmt->bindParam(':startTime',$startTime);
+                $stmt->bindParam(':endTime',$endTime);
+                $result = $stmt->execute();
+
+            }
+        }else
+        {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    public function checkEventDateTime($dates,$timeStart,$timeEnd)
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                 SELECT e.date
+                 from events as e
+                 INNER JOIN eventsTime as et on et.event_id = e.id
+                 WHERE e.date = :date AND ((:timeStart BETWEEN et.startTime AND et.endTime) OR (:timeEnd BETWEEN et.startTime AND et.endTime))
+                 ');
+            foreach($dates as &$date)
+            {
+                $stmt->bindParam(':date',$date);
+                $stmt->bindParam(':timeStart',$timeStart);
+                $stmt->bindParam(':timeEnd',$timeEnd);
+                $stmt->execute();
+                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+                {
+                    if(!empty($assocRow))
+                    {
+                        $result[]=$assocRow;
+                    }
+                }
+            }
+        }else
+        {
+            $result = false;
+        }
+
         return $result;
     }
 
