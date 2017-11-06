@@ -17,73 +17,50 @@ class Users
 
     public function getUser($params)
     {
-                $params = explode('/',$params);
+        $params = explode('/', $params);
         $paramsCount = count($params);
 //        var_dump($paramsCount);
 //        return $_COOKIE;
-        if($paramsCount == 1 && empty($params[0])){
+        if ($paramsCount == 1 && empty($params[0])) {
             //if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
             //{
-                //$checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'], $_COOKIE['id']);
-                //if($checkResult !=0)
-                //{
-                    $result  = $this->userSql->getUsers();
-              //  }
+            //$checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'], $_COOKIE['id']);
+            //if($checkResult !=0)
+            //{
+            $result = $this->userSql->getUsers();
+            //  }
             //} else
             //{
-             //   $result = INTRUDER;
+            //   $result = INTRUDER;
             //}
-        } elseif($paramsCount == 1 && !empty($params[0]))
-        {
-        $result  = $this->userSql->getUserById($params[0]);
+        } elseif ($paramsCount == 1 && !empty($params[0])) {
+            $result = $this->userSql->getUserById($params[0]);
         } else {
             $result = WRONG_DATA;
         }
 
 
         return $result;
-//        if($params == false)
-//        {
-//            return false;
-//        }else
-//        {
-//            $params = explode('/',$params);
-//            $countParams = count($params);
-//            if($countParams == 1)
-//            {
-//                $checkResult = $this->authSql->checkAdminHash($params[0]);
-//                if($checkResult == 1)
-//                {
-//                    $result = $this->userSql->getUsers();
-//                }
-//            }elseif($countParams == 2)
-//            {
-//                if(is_numeric($params[1]) && $this->authSql->checkUserHash($params[0],$params[1])==1)
-//                {
-//                    $result = $this->userSql->getUserById($params[1]);
-//                }elseif(is_numeric($params[1]) && $this->authSql->checkAdminHash($params[0])==1)
-//                {
-//                    $result = $this->userSql->getUserById($params[1]);
-//                }else
-//                {
-//                    $result = false;
-//                }
-//            }else
-//            {
-//                return false;
-//            }
-
-//        }
-//        return $result;
     }
 
-//    public function putUser($params)
-//    {
-//        if($params == false )
-//        {
-//            $putStr = file_get_contents('php://input');
-//            $generatePutData = new GenerateData();
-//            $putData = $generatePutData->generatePutData($putStr);
+    public function putUser($params)
+    {
+        if ($params == false) {
+            $putStr = file_get_contents('php://input');
+            $generateParams = new GenerateParams();
+            $putData = $generateParams->generatePutData($putStr);
+
+            if (is_string($putData['name']) && is_string($putData['login']) &&
+                filter_var($putData['email'], FILTER_VALIDATE_EMAIL)
+            ) {
+                if ($putData['password'] != null) {
+                    $putData['password'] = md5(md5($putData['password']));
+                }
+                $result = $this->userSql->updateUser($putData);
+            }
+        }
+        return $result;
+
 //            if(!$putData['hash'])
 //            {
 //                return false;
@@ -117,4 +94,5 @@ class Users
 //
 //        return $result;
 //    }
+    }
 }

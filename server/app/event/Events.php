@@ -41,22 +41,22 @@ class Events
             $timeZone = json_decode($_POST['timeZone']);
             $checkDates = [];
             array_push($checkDates,$date);
-            //return $_POST;
             $timeZone =  timezone_name_from_abbr('',($timeZone*60)*-1,0);
             date_default_timezone_set($timeZone);
-            if($recursive == 'weekli')
+            if($recursive == 'weekly')
             {
                 $date = date_create($date);
-                $recursive = 1;
+                $recursive = 0;
                 for($i = 1; $i <=$repetitionCount;$i++)
                 {
                     date_modify($date, '1 week');
-                    array_push($checkDates,date_format($date, 'Y-m-d'));
+                    $newDate = date_format($date, 'Y-m-d');
+                    array_push($checkDates,$newDate);
                 }
-            } elseif ($recursive == 'bi-weekli')
+            } elseif ($recursive == 'bi-weekly')
             {
                 $date = date_create($date);
-                $recursive = 1;
+                $recursive = 0;
                 for($i = 1; $i <=$repetitionCount;$i++)
                 {
                     date_modify($date, '2 week');
@@ -65,42 +65,137 @@ class Events
             } elseif ($recursive == 'monthly')
             {
                 $date = date_create($date);
-                $recursive = 1;
+                $recursive = 0;
                     date_modify($date, '1 month');
                     array_push($checkDates,date_format($date, 'Y-m-d'));
             } else
             {
                 $recursive = 0;
             }
-            //return date_format($date, 'Y-m-d');
-            //return $checkDates;
-//var_dump($checkDates);
 
-            $busyDates = $this->eventSql->checkEventDateTime($checkDates,$timeStart,$timeEnd);
-//return $bussyDates;
-            foreach($checkDates as $kay=>$val)
+            $busyDates = $this->eventSql->checkEventDateTimeInterval($checkDates,$timeStart,$timeEnd);
+//            $busyDates = array_unique($busyDates);
+//            $freeDates = $this->eventSql->checkEventDateTimeInterval($checkDates,$timeStart,$timeEnd);
+//var_dump($busyDates);
+//            return $busyDates;
+
+
+//            foreach($res as $ev)
+//            {
+//                if(((new \DateTime($ev['start']) <= $start) && (new \DateTime($ev['end']) <= $start))
+//			|| ((new \DateTime($ev['start']) >= $end)   && (new \DateTime($ev['end']) >= $end)))
+//			{
+//                return true;
+//            }
+//			return false;
+//		}
+
+//            foreach($busyDates as $key=>$val)
+//            {
+//                if((($val['startTime'] <= $timeStart) && ($val['endTime'] <= $timeStart))
+//			|| (($val['startTime'] >= $timeEnd)   && ($val['endTime'] >= $timeEnd)))
+//			{
+//                var_dump($val);
+////                return true;
+//            }
+//			return false;
+//		}
+
+//            foreach($busyDates as $key=>$val)
+//            {
+//                if($val['startTime'] == $timeStart && ($timeStart > $val['startTime'] && $timeEnd <$val['endTime'] ))
+//                {
+//                    unset($busyDates[$key]);
+//                }
+////                var_dump($val);
+//            }
+//            var_dump($busyDates);
+//            return;
+//            $c = $this->eventSql->checkEventDateTime($busyDates,$timeStart,$timeEnd);
+////var_dump($c);
+//            if($c != null)
+//            {
+//                foreach($c as $val)
+//                {
+//                    $noBusyTime = array_search($val['date'],$busyDates);
+////                    var_dump($noBusyTime);
+//                    var_dump($busyDates);
+//                    var_dump($val['date']);
+//                    if($noBusyTime !== false)
+//                    {
+//                        unset($busyDates[$noBusyTime]);
+//                    }
+//                }
+//            }
+//return $busyDates;
+//var_dump($busyDates);
+            if($busyDates != null)
             {
-                if($busyDates[$kay]['date'] != $val)
+                $busyDates = array_unique($busyDates);
+//                var_dump($busyDates);
+                foreach($busyDates as $key=>$val)
                 {
-                    $insertDates[] = $val;
+                    $busyDate = array_search($val,$checkDates);
+//                    var_dump($busyDate);
+                    if($busyDate !== false)
+                    {
+                        unset($checkDates[$busyDate]);
+                    } elseif ($busyDate === false)
+                    {
+//                        echo $key;
+                        unset($busyDates[$key]);
+                    }
+    //                if($busyDates[$kay]['date'] != $val)
+    //                {
+    //                    $insertDates[] = $val;
+    //                }
                 }
             }
+//            unset($busyDates,0);
+//            var_dump($busyDates);
+//            var_dump($checkDates);
+//            return
+            $weekendDays = [];
+            if(!empty($checkDates))
+            {
+                foreach($checkDates as $key=>$val)
+                {
+                    $date = date_create($val);
+                    $day = date_format($date, 'l');
+    //                var_dump($day);
+                    if($day == 'Saturday' || $day == 'Sunday')
+                    {
+                        unset($checkDates[$key]);
+                        array_push($weekendDays,$val);
+                    }
+                }
+            }
+//            var_dump($weekendDays);
+//            return $weekendDays;
+//            foreach($checkDates as $kay=>$val)
+//            {
+////                if($busyDates[$kay]['date'] != $val)
+////                {
+////                    $insertDates[] = $val;
+////                }
+//            }
             //return $insertDates;
 //            var_dump($insertDates);
 //var_dump(!empty($insertDates));
-            if(!empty($insertDates))
+            if(!empty($checkDates))
             {
                 //echo '111';
-                $insertIds = $this->eventSql->addNewEvent($userId,$boardRoom,$description,$insertDates,$timeOfCreate,$recursive);
+                $insertIds = $this->eventSql->addNewEvent($userId,$boardRoom,$description,$checkDates,$timeOfCreate,$recursive);
                 $this->eventSql->addEventTime($insertIds,$timeStart,$timeEnd);
 
             }
-            if(empty($busyDates))
+            if(empty($busyDates) && empty($weekendDays))
             {
                 $result = true;
             } else
             {
-                $result = $busyDates;
+                $result['busyDates'] = $busyDates;
+                $result['weekendDays'] = $weekendDays;
             }
         }
 

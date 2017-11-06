@@ -29,7 +29,7 @@ class Auths
 //            {
                 if(is_string($putData['login']) && is_string($putData['password']))
                 {
-                    $roleId = $this->authSql->checkUser($putData['login'],$putData['password']);
+                    $roleId = $this->authSql->checkUser($putData['login'],md5(md5($putData['password'])));
 //var_dump($roleIdId);
                     if($roleId['id'] != null)
                     {
@@ -79,31 +79,36 @@ class Auths
         if($params == false)
         {
 
-            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
-            {
-                $checkResult = $this->authSql->checkAdmin($_COOKIE['hash'],$_COOKIE['id']);
+//            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
+//            {
+//                $checkResult = $this->authSql->checkAdmin($_COOKIE['hash'],$_COOKIE['id']);
 
-                if($checkResult !=0)
-                {
+//                if($checkResult !=0)
+//                {
                     $login = json_decode($_POST['login']);
                     $password = md5(md5(json_decode($_POST['password'])));
                     $name = json_decode($_POST['name']);
                     $email = json_decode($_POST['email']);
                     $checkLogin = $this->authSql->checkUserLogin($login);
 
+            if($checkLogin == 0)
+            {
                     if(is_string($name) && is_string($name) && is_string($password) &&
-                        filter_var($email, FILTER_VALIDATE_EMAIL) && $checkLogin != 0)
+                        filter_var($email, FILTER_VALIDATE_EMAIL))
                     {
                         $result = $this->authSql->createNewUser($name,$email,$login,$password);
                     }else
                     {
                         $result = WRONG_DATA;
                     }
-                }
-            }else
-            {
-                $result = INTRUDER;
+            } else {
+                $result = LOGIN_ALREADY_TAKEN;
             }
+//                }
+//            }else
+//            {
+//                $result = INTRUDER;
+//            }
 //            if($isActive == null)
 //            {
 //                $isActive = 1;

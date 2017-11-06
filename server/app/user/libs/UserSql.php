@@ -42,7 +42,8 @@ class UserSql
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT id, name 
+            $stmt =$this->dbConnect->prepare('
+                SELECT id, name, email, login
                 FROM bookerUsers 
                 WHERE id=:id
                 ');
@@ -88,7 +89,7 @@ class UserSql
     {
         $arrLength = count($params);
         $i = 1;
-        $sql = 'UPDATE client SET ';
+        $sql = 'UPDATE bookerUsers SET ';
 
         foreach($params as $key=>$val)
         {

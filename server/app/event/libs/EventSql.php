@@ -16,7 +16,7 @@ class EventSql
         if($this->dbConnect !== 'connect error')
          {
              $stmt =$this->dbConnect->prepare('
-                 SELECT e.description,e.timeOfCreate,et.startTime,et.endTime,bu.name from events as e
+                 SELECT bu.id,e.description,e.timeOfCreate,et.startTime,et.endTime,bu.name from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  INNER JOIN bookerUsers as bu on bu.id = user_id
                  WHERE bu.id = :userId and et.event_id = :eventId and e.boardroom_id = :boardroomId and et.startTime = :startTime
@@ -94,16 +94,23 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                  VALUES(:userId,:roomId,:desc,:date,:timeOfCreate,:recursive)
                  ');
 
-            foreach($dates as &$date)
+            $keys = array_keys($dates);
+            foreach($dates as $key=>&$date)
             {
                 $stmt->bindParam(':userId',$userId);
                 $stmt->bindParam(':roomId',$boardRoom);
                 $stmt->bindParam(':desc',$description);
                 $stmt->bindParam(':date',$date);
                 $stmt->bindParam(':timeOfCreate',$timeOfCreate);
-                $stmt->bindParam(':recursive',$recursive);
+                $stmt->bindParam(':recursive', $recursive);
+
                 if($stmt->execute())
                 {
+                    if($key == $keys[0])
+                    {
+                        $recursive = $this->dbConnect->lastInsertId();
+//                        var_dump($recursiveId);
+                    }
                     $result[] = $this->dbConnect->lastInsertId();
                 } else
                 {
@@ -143,28 +150,53 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-    public function checkEventDateTime($dates,$timeStart,$timeEnd)
+    public function checkEventDateTimeInterval($dates,$timeStart,$timeEnd)
     {
         if($this->dbConnect !== 'connect error')
         {
+//				 SELECT e.date
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date AND ((:timeStart =et.endTime OR :timeStart BETWEEN et.startTime AND et.endTime)
+//                 OR (:timeEnd  BETWEEN et.startTime AND et.endTime))
+//                 SELECT e.date,et.startTime,et.endTime
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date
+//                 SELECT e.date
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime <= :timeStart)
+//                 OR (et.startTime >= :timeEnd AND et.endTime >= :timeEnd))
             $stmt =$this->dbConnect->prepare('
                  SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
-                 WHERE e.date = :date AND ((:timeStart BETWEEN et.startTime AND et.endTime) OR (:timeEnd BETWEEN et.startTime AND et.endTime))
+                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
+                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd))
+                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
                  ');
             foreach($dates as &$date)
             {
-                //var_dump($date);
+//                var_dump($date);
                 $stmt->bindParam(':date',$date);
                 $stmt->bindParam(':timeStart',$timeStart);
                 $stmt->bindParam(':timeEnd',$timeEnd);
                 $stmt->execute();
+//                var_dump($stmt->fetch(PDO::FETCH_ASSOC));
+//                $assocRow = $stmt->fetch(PDO::FETCH_ASSOC);
+//                                    if(!empty($assocRow))
+//                    {
+////                        var_dump($assocRow);
+//                        $result[]=$assocRow;
+//                    }
                 while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
                 {
+//                    var_dump($assocRow);
                     if(!empty($assocRow))
                     {
-                        $result[]=$assocRow;
+//                        var_dump($assocRow);
+                        $result[]=$assocRow['date'];
                     }
                 }
             }
@@ -175,6 +207,49 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return $result;
     }
+
+//    public function checkEventDateTime($dates,$timeStart,$timeEnd)
+//    {
+//        if($this->dbConnect !== 'connect error')
+//        {
+//            $stmt =$this->dbConnect->prepare('
+//                                  SELECT e.date
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date AND ((:timeStart  = et.startTime OR :timeStart  = et.endTime)
+//                 OR (:timeEnd  = et.startTime OR :timeEnd  = et.endTime))
+//                 ');
+//            foreach($dates as &$date)
+//            {
+////                var_dump($date);
+//                $stmt->bindParam(':date',$date['date']);
+//                $stmt->bindParam(':timeStart',$timeStart);
+//                $stmt->bindParam(':timeEnd',$timeEnd);
+//                $stmt->execute();
+////                var_dump($stmt->fetch(PDO::FETCH_ASSOC));
+//                $assocRow = $stmt->fetch(PDO::FETCH_ASSOC);
+//                if(!empty($assocRow))
+//                {
+////                        var_dump($assocRow);
+//                    $result[]=$assocRow;
+//                }
+////                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+////                {
+//////                    var_dump($assocRow);
+////                    if(!empty($assocRow))
+////                    {
+//////                        var_dump($assocRow);
+////                        $result[]=$assocRow;
+////                    }
+////                }
+//            }
+//        }else
+//        {
+//            $result = false;
+//        }
+//
+//        return $result;
+//    }
 
 //    public function createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role)
 //    {
