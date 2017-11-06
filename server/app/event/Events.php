@@ -25,6 +25,42 @@ class Events
         return $result;
     }
 
+    public function deleteEvent($parans)
+    {
+        if($params == false)
+        {
+            $putStr = file_get_contents('php://input');
+            $generateParams = new GenerateParams();
+            $putData = $generateParams->generatePutData($putStr);
+
+            if($putData['recurrence'] != 1)
+            {
+                $result = $this->eventSql->deleteEvent($putData['date'],$putData['eventId']);
+            } else 
+            {
+                $recursiveOrNot = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
+                
+                if($recursiveOrNot == 0)
+                {
+                    if($this->eventSql->deleteEvent($putData['date'],$putData['eventId']))
+                    {
+                        $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$putData['eventId']); 
+                    } else 
+                    {
+                         $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$putData['eventId']);
+                    }
+                }
+                //var_dump($recursiveOrNot);
+                //if($this->eventSql->deleteEvent($putData['date'],$putData['eventId']))
+               // {
+                 //   $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$putData['eventId']); 
+               // }
+            } 
+        }
+
+        return $result;
+    }
+
     public function postEvent($params)
     {
         if($params == false)

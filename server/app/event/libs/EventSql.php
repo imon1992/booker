@@ -208,6 +208,78 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
+    public function deleteEvent($date,$eventId)
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                DELETE FROM events
+                WHERE date >= :date AND id = :eventId 
+                ');
+                $stmt->bindParam(':date',$date);
+                $stmt->bindParam(':eventId',$eventId);
+
+                $result = $stmt->execute();
+
+        } else 
+        {
+            $result = false;
+        }
+        return $result;
+    }
+
+    public function recurrenceDeleteEvent($date,$recursiveId)
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                DELETE FROM events
+                WHERE date >= :date AND recursive = :recursiveId
+                ');
+                $stmt->bindParam(':date',$date);
+                $stmt->bindParam(':recursiveId',$recursiveId);
+
+                $result = $stmt->execute();
+
+        } else 
+        {
+            $result = false;
+        }
+        return $result;
+    }
+
+    public function checkRecurrence($date,$eventId)
+    {
+        //var_dump($date,$eventId);
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                SELECT recursive FROM events
+                WHERE date = :date AND id = :eventId
+                ');
+                $stmt->bindParam(':date',$date);
+                $stmt->bindParam(':eventId',$eventId);
+
+                $stmt->execute();
+                //var_dump($stmt->fetchAll(PDO::FETCH_ASSOC));
+                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+                {
+//                    var_dump($assocRow);
+                    if(!empty($assocRow))
+                    {
+//                        var_dump($assocRow);
+                        $result=$assocRow['recursive'];
+                        //var_dump($assocRow);
+                    }
+                }
+
+        } else 
+        {
+            $result = false;
+        }
+        return $result;
+    }
+
 //    public function checkEventDateTime($dates,$timeStart,$timeEnd)
 //    {
 //        if($this->dbConnect !== 'connect error')
