@@ -245,15 +245,15 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                   SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
-                 WHERE (e.date = :date AND et.event_id = :eventId) AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
-                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd))
-                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
+                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart AND et.event_id <> :eventId)
+                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND et.event_id <> :eventId)
+                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
                  ');
 
             foreach($dates as &$date)
             {
-                var_dump($date);
-                var_dump($eventId);
+               // var_dump($date);
+                //var_dump($eventId);
                 $stmt->bindParam(':date',$date);
                 $stmt->bindParam(':timeStart',$timeStart);
                 $stmt->bindParam(':timeEnd',$timeEnd);

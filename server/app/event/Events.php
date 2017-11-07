@@ -67,18 +67,26 @@ class Events
             $otherTimeErr = 0;
             array_push($checkDates,$putData['date']);
 //            if($putData['recurrence'] != 1)
-//            {updateEvent($userId,$desc,$startTime,$endTime,$eventId)
-                $eventDateTime = $this->eventSql->checkEventDateTimeForUpdate($checkDates,$putData['startTime'],
+            //            {updateEvent($userId,$desc,$startTime,$endTime,$eventId)
+            if($putData['recurrence']== 0)
+            {
+                $busyTime = $this->eventSql->checkEventDateTimeForUpdate($checkDates,$putData['startTime'],
                     $putData['endTime'], $putData['eventId']);
-var_dump($eventDateTime);
+//var_dump($eventDateTime);
 //
 //                    $putData['eventId']);
 //            var_dump($busyDates);
-//                if(empty($busyDates))
-//                {
-//                    $result = $this->eventSql->updateEvent($putData['userId'],$putData['desc'],
-//                        $putData['startTime'],$putData['endTime'],$putData['eventId'],$putData['date']);
-//                }
+                if(empty($busyTime))
+                {
+                    $result = $this->eventSql->updateEvent($putData['userId'],$putData['desc'],
+                        $putData['startTime'],$putData['endTime'],$putData['eventId'],$putData['date']);
+                }
+            }else 
+                {
+                    $result = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
+                    var_dump($result);
+                    //echo 1212;
+                }
             }
 //        else
 //            {
