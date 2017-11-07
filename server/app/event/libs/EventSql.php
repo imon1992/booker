@@ -169,7 +169,7 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 //                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime <= :timeStart)
 //                 OR (et.startTime >= :timeEnd AND et.endTime >= :timeEnd))
             $stmt =$this->dbConnect->prepare('
-                 SELECT e.date
+                                  SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
@@ -228,6 +228,54 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
+    public function checkEventDateTimeForUpdate($dates,$timeStart,$timeEnd,$eventId)
+    {
+//                  SELECT e.date
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date AND et.event_id <> :eventId AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
+//                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd))
+//                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
+//                 AND e.id <> :eventId AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
+//                 OR (:timeEnd >= et.startTime AND :timeEnd < et.endTime ))
+//                    OR (:timeStart >= et.startTime   AND  :timeEnd <= et.endTime)
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                                  SELECT e.date
+                 from events as e
+                 INNER JOIN eventsTime as et on et.event_id = e.id
+                 WHERE (e.date = :date AND et.event_id = :eventId) AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
+                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd))
+                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
+                 ');
+
+            foreach($dates as &$date)
+            {
+                var_dump($date);
+                var_dump($eventId);
+                $stmt->bindParam(':date',$date);
+                $stmt->bindParam(':timeStart',$timeStart);
+                $stmt->bindParam(':timeEnd',$timeEnd);
+                $stmt->bindParam(':eventId',$eventId);
+                $stmt->execute();
+                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+                {
+//                    var_dump($assocRow);
+                    if(!empty($assocRow))
+                    {
+                        $result[]=$assocRow['date'];
+                    }
+                }
+            }
+        }else
+        {
+            $result = false;
+        }
+
+        return $result;
+    }
+
     public function recurrenceDeleteEvent($date,$recursiveId)
     {
         if($this->dbConnect !== 'connect error')
@@ -242,6 +290,35 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $result = $stmt->execute();
 
         } else 
+        {
+            $result = false;
+        }
+        return $result;
+    }
+
+    public function updateEvent($userId,$desc,$startTime,$endTime,$eventId,$date)
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                UPDATE events as e, eventsTime as et SET
+                e.user_id = :userId,
+                e.description = :desc,
+                e.recursive = :eventId,
+                et.startTime = :startTime,
+                et.endTime = :endTime
+                WHERE et.event_id=e.id AND e.id= :eventId AND e.date = :date
+                ');
+            $stmt->bindParam(':userId',$userId);
+            $stmt->bindParam(':desc',$desc);
+            $stmt->bindParam(':startTime',$startTime);
+            $stmt->bindParam(':endTime',$endTime);
+            $stmt->bindParam(':eventId',$eventId);
+            $stmt->bindParam(':date',$date);
+
+            $result = $stmt->execute();
+
+        } else
         {
             $result = false;
         }
@@ -280,205 +357,28 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-//    public function checkEventDateTime($dates,$timeStart,$timeEnd)
+//    private function generateEventUpdateSql($params)
 //    {
-//        if($this->dbConnect !== 'connect error')
+//        $arrLength = count($params);
+//        $i = 1;
+//        $sql = 'UPDATE events as e, eventsTime as et SET ';
+//
+//        foreach($params as $key=>$val)
 //        {
-//            $stmt =$this->dbConnect->prepare('
-//                                  SELECT e.date
-//                 from events as e
-//                 INNER JOIN eventsTime as et on et.event_id = e.id
-//                 WHERE e.date = :date AND ((:timeStart  = et.startTime OR :timeStart  = et.endTime)
-//                 OR (:timeEnd  = et.startTime OR :timeEnd  = et.endTime))
-//                 ');
-//            foreach($dates as &$date)
+//            if($val !='')
 //            {
-////                var_dump($date);
-//                $stmt->bindParam(':date',$date['date']);
-//                $stmt->bindParam(':timeStart',$timeStart);
-//                $stmt->bindParam(':timeEnd',$timeEnd);
-//                $stmt->execute();
-////                var_dump($stmt->fetch(PDO::FETCH_ASSOC));
-//                $assocRow = $stmt->fetch(PDO::FETCH_ASSOC);
-//                if(!empty($assocRow))
+//                if ($arrLength != $i)
 //                {
-////                        var_dump($assocRow);
-//                    $result[]=$assocRow;
+//                    $sql .= $key . '=:' . $key . ',';
+//                } else
+//                {
+//                    $sql .= $key . '=:' . $key ;
 //                }
-////                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-////                {
-//////                    var_dump($assocRow);
-////                    if(!empty($assocRow))
-////                    {
-//////                        var_dump($assocRow);
-////                        $result[]=$assocRow;
-////                    }
-////                }
 //            }
-//        }else
-//        {
-//            $result = false;
+//            $i++;
 //        }
-//
-//        return $result;
-//    }
-
-//    public function createNewUser($name,$surname,$phone,$email,$login,$password,$discount,$isActive,$role)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('INSERT INTO client(name,surname,phone,email,login,password,discount,isActive,role)
-//                VALUES(:name,:surname,:phone,:email,:login,:password,:discount,:isActive,:role)');
-//            $stmt->bindParam(':name',$name);
-//            $stmt->bindParam(':surname',$surname);
-//            $stmt->bindParam(':phone',$phone);
-//            $stmt->bindParam(':email',$email);
-//            $stmt->bindParam(':login',$login);
-//            $stmt->bindParam(':password',$password);
-//            $stmt->bindParam(':discount',$discount);
-//            $stmt->bindParam(':isActive',$isActive);
-//            $stmt->bindParam(':role',$role);
-//
-//            $result = $stmt->execute();
-//            return $result;
-//        }else
-//        {
-//            return 'error';
-//        }
-//    }
-//
-//    public function getIdPassRoleActiveByLogin($login)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('SELECT id,password,role,isActive
-//                FROM client
-//                WHERE login=:login');
-//
-//            $stmt->bindParam(':login',$login);
-//            $stmt->execute();
-//            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-//            {
-//                $result[]=$assocRow;
-//            }
-//            return $result;
-//        }else
-//            {
-//                return 'error';
-//            }
-//    }
-//
-//    public function getIdHashByCookieId($id)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('SELECT hash,id
-//                FROM client
-//                WHERE id=:id');
-//
-//            $stmt->bindParam(':id',$id);
-//            $stmt->execute();
-//            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-//            {
-//                $result[]=$assocRow;
-//            }
-//            return $result;
-//        }else
-//            {
-//                return 'error';
-//            }
-//    }
-//
-//    public function setNewHash($hash,$id)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('UPDATE client
-//                SET hash= :hash
-//                WHERE id=:id');
-//
-//            $stmt->bindParam(':hash',$hash);
-//            $stmt->bindParam(':id',$id);
-//            $result = $stmt->execute();
-//            return $result;
-//        }else
-//        {
-//            return 'error';
-//        }
-//    }
-//
-//    public function checkUser($login,$password)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('SELECT id
-//                FROM client
-//                WHERE login=:login AND password=:password');
-//
-//            $stmt->bindParam(':login',$login);
-//            $stmt->bindParam(':password',$password);
-//            $stmt->execute();
-//            $result = $stmt->rowCount();
-//            return $result;
-//        }else
-//        {
-//            return 'error';
-//        }
-//    }
-//
-//    public function checkUserLogin($login)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
-//                FROM client
-//                WHERE login=:login');
-//
-//            $stmt->bindParam(':login',$login);
-//            $stmt->execute();
-//            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-//            return $result['COUNT(id)'];
-//        }else
-//        {
-//            return 'error';
-//        }
-//    }
-//
-//    public function checkAdminHash($hash)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
-//                FROM client
-//                WHERE hash=:hash AND role=\'admin\'');
-//
-//            $stmt->bindParam(':hash',$hash);
-//            $stmt->execute();
-//            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-//            return $result['COUNT(id)'];
-//        }else
-//        {
-//            return 'error';
-//        }
-//    }
-//
-//    public function checkUserHash($hash,$id)
-//    {
-//        if($this->dbConnect !== 'connect error')
-//        {
-//            $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
-//                FROM client
-//                WHERE hash=:hash AND id=:id');
-//
-//            $stmt->bindParam(':hash',$hash);
-//            $stmt->bindParam(':id',$id);
-//            $stmt->execute();
-//            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-//            return $result['COUNT(id)'];
-//        }else
-//        {
-//            return 'error';
-//        }
+//        $sql .= ' WHERE id=:id';
+//        return $sql;
 //    }
 }
 
