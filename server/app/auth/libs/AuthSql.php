@@ -79,6 +79,7 @@ class AuthSql
     {
         if($this->dbConnect !== 'connect error')
         {
+            //var_dump($login,$password);
             $stmt =$this->dbConnect->prepare('UPDATE bookerUsers
                 SET hash= :hash
                 WHERE login = :login AND password = :password');
@@ -166,7 +167,7 @@ class AuthSql
         {
             $stmt =$this->dbConnect->prepare('SELECT COUNT(id)
                 FROM bookerUsers
-                WHERE hash=:hash AND id:=:id
+                WHERE hash=:hash AND id=:id
                 ');
 
             $stmt->bindParam(':hash',$hash);

@@ -38,6 +38,7 @@ class Auths
                         setcookie("hash", $hash, time()+3600,'/');
                         setcookie("id", $roleId['id'], time()+3600,'/');
                         setcookie("role", $roleId['role'], time()+3600,'/');
+$this->authSql->setNewHash($hash,$putData['login'],md5(md5($putData['password'])));
                         $result['role'] = $roleId['role'];
                         $result['err'] = null;
                         $result['hash'] = $hash;
@@ -55,11 +56,7 @@ class Auths
 //            {
 //                $result = INTRUDER;
 //            }
-        }else
-        {
-            $result['err'] = INTRUDER;
         }
-
 //        if($params != false)
 //        {
 //            if ($params[0] !== 'undefined' && $params[1] !== 'undefined') {
@@ -79,40 +76,49 @@ class Auths
 
     public function postAuth($params)
     {
-        return $_COOKIE;
+        //return $_COOKIE;
         if($params == false)
         {
 
-//            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
-//            {
-//                $checkResult = $this->authSql->checkAdmin($_COOKIE['hash'],$_COOKIE['id']);
+            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
+            {
+                //var_dump($_COOKIE['hash']);
+                //var_dump($_COOKIE['id']);
+                $checkResult = $this->authSql->checkAdmin($_COOKIE['hash'],$_COOKIE['id']);
 
-//                if($checkResult !=0)
-//                {
+                if($checkResult !=0)
+                {
                     $login = json_decode($_POST['login']);
                     $password = md5(md5(json_decode($_POST['password'])));
                     $name = json_decode($_POST['name']);
                     $email = json_decode($_POST['email']);
                     $checkLogin = $this->authSql->checkUserLogin($login);
 
-            if($checkLogin == 0)
-            {
-                    if(is_string($name) && is_string($name) && is_string($password) &&
-                        filter_var($email, FILTER_VALIDATE_EMAIL))
+                    if($checkLogin == 0)
                     {
-                        $result = $this->authSql->createNewUser($name,$email,$login,$password);
-                    }else
-                    {
-                        $result = WRONG_DATA;
+                            if(is_string($name) && is_string($name) && is_string($password) &&
+                                filter_var($email, FILTER_VALIDATE_EMAIL))
+                            {
+                                $result = $this->authSql->createNewUser($name,$email,$login,$password);
+                            } else
+                            {
+                                $result = WRONG_DATA;
+                            }
+                    } else {
+                        $result = LOGIN_ALREADY_TAKEN;
                     }
-            } else {
-                $result = LOGIN_ALREADY_TAKEN;
+                } else 
+                            {
+                                $result = INTRUDER;
+                            }
+            }else
+            {
+                $result = INTRUDER;
             }
-//                }
-//            }else
-//            {
-//                $result = INTRUDER;
-//            }
+        } else 
+                            {
+                                $result = false;
+        }
 //            if($isActive == null)
 //            {
 //                $isActive = 1;
@@ -140,7 +146,7 @@ class Auths
 //            } else {
 //                $result = $err;
 //            }
-        }
+        
 
         return $result;
     }
