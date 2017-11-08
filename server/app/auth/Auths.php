@@ -35,11 +35,14 @@ class Auths
                     {
                         $generateParams = new GenerateParams();
                         $hash = md5($generateParams->generateCode(10));
-//                        setcookie("hash", $hash, time()+3600);
+                        setcookie("hash", $hash, time()+3600,'/');
+                        setcookie("id", $roleId['id'], time()+3600,'/');
+                        setcookie("role", $roleId['role'], time()+3600,'/');
                         $result['role'] = $roleId['role'];
                         $result['err'] = null;
                         $result['hash'] = $hash;
                         $result['id'] = $roleId['id'];
+//                        setcookie()
                     }else
                     {
                         $result['err'] = WRONG_PASS;
@@ -76,6 +79,7 @@ class Auths
 
     public function postAuth($params)
     {
+        return $_COOKIE;
         if($params == false)
         {
 

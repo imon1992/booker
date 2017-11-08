@@ -12,6 +12,7 @@ class Events
 
     public function getEvent($params)
     {
+        return $_COOKIE;
         $params = explode('/',$params);
         $paramsCount = count($params);
         if($paramsCount == 3)
@@ -63,46 +64,73 @@ class Events
             $generateParams = new GenerateParams();
             $putData = $generateParams->generatePutData($putStr);
             $checkDates = [];
-            $selfTimeErr=0;
-            $otherTimeErr = 0;
             array_push($checkDates,$putData['date']);
-//            if($putData['recurrence'] != 1)
-            //            {updateEvent($userId,$desc,$startTime,$endTime,$eventId)
             if($putData['recurrence']== 0)
             {
-                $busyTime = $this->eventSql->checkEventDateTimeForUpdate($checkDates,$putData['startTime'],
+                $busyDates = $this->eventSql->checkEventTime($checkDates,$putData['startTime'],
                     $putData['endTime'], $putData['eventId']);
-//var_dump($eventDateTime);
-//
-//                    $putData['eventId']);
-//            var_dump($busyDates);
-                if(empty($busyTime))
+                if(empty($busyDates))
                 {
-                    $result = $this->eventSql->updateEvent($putData['userId'],$putData['desc'],
-                        $putData['startTime'],$putData['endTime'],$putData['eventId'],$putData['date']);
+                    $eventUserId = $this->eventSql->selectEventUser($putData['eventId']);
+                    if($eventUserId == $putData['userId'])
+                    {
+                        $result = $this->eventSql->updateEvent($putData['userId'],$putData['desc'],
+                            $putData['startTime'],$putData['endTime'],$putData['eventId'],$putData['date'],$putData['eventId']);
+                    }else
+                    {
+                        $result = $this->eventSql->updateEvent($putData['userId'],$putData['desc'],
+                            $putData['startTime'],$putData['endTime'],$putData['eventId'],$putData['date'],0);
+                    }
                 }
             }else 
                 {
-                    $result = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
-                    var_dump($result);
-                    //echo 1212;
+                    $recursiveOrNot = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
+                    if($recursiveOrNot == 0)
+                    {
+                        $dates = $this->eventSql->selectEventDates($putData['eventId']);
+                        $busyDates = $this->eventSql->checkRecurrenceEventTime($dates, $putData['startTime'],
+                            $putData['endTime']);
+
+                    }else
+                    {
+                        $recurrenceId = $this->eventSql->selectRecurrenceId($putData['eventId']);
+                        $dates = $this->eventSql->selectEventDatesRecurrence($recurrenceId);
+                        $busyDates = $this->eventSql->checkRecurrenceEventTime($dates,$putData['startTime'],
+                            $putData['endTime']);
+                    }
+                    if ($busyDates != null) {
+                        foreach ($dates as $key => $val) {
+                            foreach ($busyDates as $date) {
+                                if ($val['date'] == $date) {
+                                    unset($dates[$key]);
+                                }
+                            }
+                        }
+                    }
+                    if (!empty($dates)) {
+                        $eventUserId = $this->eventSql->selectEventUser($putData['eventId']);
+                        if ($eventUserId == $putData['userId']) {
+                            $result = $this->eventSql->recurrenceUpdateEventNoChangeRecurrence($putData['userId'], $putData['desc'],
+                                $putData['startTime'], $putData['endTime'], $dates);
+                        } else {
+//                            var_dump($putData['eventId']);
+                            $result = $this->eventSql->recurrenceUpdateEventChangeRecurrence($putData['userId'], $putData['desc'],
+                                $putData['startTime'], $putData['endTime'], $dates, $putData['eventId']);
+                        }
+                    }
                 }
+
+            if(empty($busyDates))
+            {
+                $result = true;
+            } else
+            {
+                $result['busyDates'] = $busyDates;
             }
-//        else
-//            {
-//                $recursiveOrNot = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
-//                if($recursiveOrNot == 0)
-//                {
-//                    if($this->eventSql->deleteEvent($putData['date'],$putData['eventId']))
-//                    {
-//                        $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$putData['eventId']);
-//                    }
-//                }else
-//                {
-//                    $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$recursiveOrNot);
-//                }
-//            }
-//        }
+            } else
+        {
+            $result = false;
+        }
 
         return $result;
     }
