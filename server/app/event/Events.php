@@ -50,41 +50,41 @@ class Events
             $putStr = file_get_contents('php://input');
             $generateParams = new GenerateParams();
             $putData = $generateParams->generatePutData($putStr);
-if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
-        {
-            $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'],$_COOKIE['id']);
-            if($checkResult !=0)
+            if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
             {
-
-            if($putData['recurrence'] != 1)
-            {
-                $result = $this->eventSql->deleteEvent($putData['date'],$putData['eventId']);
-            } else 
-            {
-                $recursiveOrNot = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
-                if($recursiveOrNot == 0)
+                $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'],$_COOKIE['id']);
+                if($checkResult !=0)
                 {
-                    if($this->eventSql->deleteEvent($putData['date'],$putData['eventId']))
+
+                    if($putData['recurrence'] != 1)
                     {
-                        $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$putData['eventId']); 
+                        $result = $this->eventSql->deleteEvent($putData['date'],$putData['eventId']);
+                    } else 
+                    {
+                        $recursiveOrNot = $this->eventSql->checkRecurrence($putData['date'],$putData['eventId']);
+                        if($recursiveOrNot == 0)
+                        {
+                            if($this->eventSql->deleteEvent($putData['date'],$putData['eventId']))
+                            {
+                                $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$putData['eventId']); 
+                            }
+                        }else
+                            {
+                                $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$recursiveOrNot);
+                            }
                     }
                 }else
-                    {
-                        $result = $this->eventSql->recurrenceDeleteEvent($putData['date'],$recursiveOrNot);
-                    }
-            }
-}else
-                {
-                    $result = INTRUDER;
-                }
-        }else
-                {
-                    $result = INTRUDER;
-                }
+                            {
+                                $result = INTRUDER;
+                            }
+            }else
+                            {
+                                $result = INTRUDER;
+                            }
         } else
-                    {
-                        $result = false;
-                    }
+                            {
+                                $result = false;
+                            }
 
         return $result;
     }
@@ -172,6 +172,11 @@ if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
     {
         if($params == false)
         {
+if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
+            {
+                $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'],$_COOKIE['id']);
+                if($checkResult !=0)
+                {
             $userId = json_decode($_POST['userId']);
             $boardRoom = json_decode($_POST['roomId']);
             $description = json_decode($_POST['description']);
@@ -340,7 +345,19 @@ if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
                 $result['busyDates'] = $busyDates;
                 $result['weekendDays'] = $weekendDays;
             }
-        }
+        }else
+                            {
+                                $result = INTRUDER;
+                            }
+            }else
+                            {
+                                $result = INTRUDER;
+                            }
+
+        } else
+            {
+                $result = false;
+            }
 
         return $result;
     }
