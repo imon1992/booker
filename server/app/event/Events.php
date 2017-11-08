@@ -17,11 +17,11 @@ class Events
         //return $_COOKIE;
         $params = explode('/',$params);
         $paramsCount = count($params);
-        if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
-        {
-            $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'],$_COOKIE['id']);
-            if($checkResult !=0)
-            {
+       // if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
+        //{
+          //  $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'],$_COOKIE['id']);
+           // if($checkResult !=0)
+            //{
                 if($paramsCount == 3)
                 {
                     //var_dump($params);
@@ -30,14 +30,14 @@ class Events
                 {
                     $result = $this->eventSql->getEventInfo($params[0],$params[1],$params[2],$params[3]);
                 }
-            }else
-                {
-                    $result = INTRUDER;
-                }
-        }else
-                {
-                    $result = INTRUDER;
-                }
+            //}else
+              //  {
+                //    $result = INTRUDER;
+                //}
+       // }else
+         //       {
+           //         $result = INTRUDER;
+             //   }
 
         return $result;
     }
@@ -170,11 +170,13 @@ class Events
 
     public function postEvent($params)
     {
+        //return $_COOKIE;
         if($params == false)
         {
 if(is_string($_COOKIE['hash']) && is_string($_COOKIE['id']))
             {
                 $checkResult = $this->authSql->checkUserOrAdmin($_COOKIE['hash'],$_COOKIE['id']);
+               //return $checkResult;
                 if($checkResult !=0)
                 {
             $userId = json_decode($_POST['userId']);
