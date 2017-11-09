@@ -1,6 +1,4 @@
 <?php
-//include ('../../config.php');
-
 
 class EventSql
 {
@@ -8,108 +6,108 @@ class EventSql
 
     public function __construct()
     {
-        $this->dbConnect=DbConnection::getInstance();
+        $this->dbConnect = DbConnection::getInstance();
     }
 
-    public function getEventInfo($bedrommId,$userId,$eventId,$starttime)
+    public function getEventInfo($boardRoomId, $userId, $eventId, $startTime)
     {
-        if($this->dbConnect !== 'connect error')
-         {
-             $stmt =$this->dbConnect->prepare('
+        if ($this->dbConnect !== 'connect error')
+        {
+            $stmt = $this->dbConnect->prepare('
                  SELECT bu.id,e.description,e.timeOfCreate,et.startTime,et.endTime,bu.name from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  INNER JOIN bookerUsers as bu on bu.id = user_id
                  WHERE bu.id = :userId and et.event_id = :eventId and e.boardroom_id = :boardroomId and et.startTime = :startTime
                  ');
-             $stmt->bindParam(':userId',$userId);
-$stmt->bindParam(':eventId',$eventId);
-$stmt->bindParam(':boardroomId',$bedrommId);
-$stmt->bindParam(':startTime',$starttime);
-$stmt->execute();
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-         }else
+            $stmt->bindParam(':userId', $userId);
+            $stmt->bindParam(':eventId', $eventId);
+            $stmt->bindParam(':boardroomId', $boardRoomId);
+            $stmt->bindParam(':startTime', $startTime);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else
         {
-        $result = false;
+            $result = false;
         }
 
         return $result;
     }
 
-    public function getEventsByMonth($firstDate,$lastDate,$id)
+    public function getEventsByMonth($firstDate, $lastDate, $id)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
             SELECT e.id,e.user_id,e.boardroom_id,e.date,et.startTime,et.endTime FROM events as e
             INNER JOIN eventsTime as et on et.event_id = e.id
             where e.date BETWEEN :firstDate AND :lastDate AND boardroom_id = :id
             ');
-            $stmt->bindParam(':firstDate',$firstDate);
-            $stmt->bindParam(':lastDate',$lastDate);
-            $stmt->bindParam(':id',$id);
+            $stmt->bindParam(':firstDate', $firstDate);
+            $stmt->bindParam(':lastDate', $lastDate);
+            $stmt->bindParam(':id', $id);
 
             $stmt->execute();
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-//            var_dump($data);
+
             $result = [];
-            foreach ($data as $val) {
-//                var_dump($val);
+            foreach ($data as $val)
+            {
                 $events = [];
                 $a = [];
                 $d = [];
 
-                if (!isset($result[$val['id']])) {
+                if (!isset($result[$val['id']]))
+                {
                     $a['startTime'] = substr($val['startTime'], 0, 5);
                     $a['endTime'] = substr($val['endTime'], 0, 5);
-                    array_unshift($d,$a);
+                    array_unshift($d, $a);
                     $events['id'] = $val['id'];
-//                    $events['badroom_id'] = $val['badroom_id'];
                     $events['userId'] = $val['user_id'];
                     $events['date'] = $val['date'];
                     $events['events'] = $a;
                     $result[$val['id']] = $events;
                 }
-                if($result[$val['id']]['id'] ==  $val['id'])
+                if ($result[$val['id']]['id'] == $val['id'])
                 {
                     $a['startTime'] = substr($val['startTime'], 0, 5);
                     $a['endTime'] = substr($val['endTime'], 0, 5);
-                    array_unshift($result[$val['id']]['events'],$a);
+                    array_unshift($result[$val['id']]['events'], $a);
                     unset($result[$val['id']]['events']['startTime']);
                     unset($result[$val['id']]['events']['endTime']);
                 }
             }
-        }else
+        } else
         {
             $result = false;
         }
+
         return $result;
     }
 
-    public function addNewEvent($userId,$boardRoom,$description,$dates,$timeOfCreate,$recursive)
+    public function addNewEvent($userId, $boardRoom, $description, $dates, $timeOfCreate, $recursive)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                  INSERT INTO events(user_id,boardroom_id,description,date,timeOfCreate,recursive)
                  VALUES(:userId,:roomId,:desc,:date,:timeOfCreate,:recursive)
                  ');
 
             $keys = array_keys($dates);
-            foreach($dates as $key=>&$date)
+            foreach ($dates as $key => &$date)
             {
-                $stmt->bindParam(':userId',$userId);
-                $stmt->bindParam(':roomId',$boardRoom);
-                $stmt->bindParam(':desc',$description);
-                $stmt->bindParam(':date',$date);
-                $stmt->bindParam(':timeOfCreate',$timeOfCreate);
+                $stmt->bindParam(':userId', $userId);
+                $stmt->bindParam(':roomId', $boardRoom);
+                $stmt->bindParam(':desc', $description);
+                $stmt->bindParam(':date', $date);
+                $stmt->bindParam(':timeOfCreate', $timeOfCreate);
                 $stmt->bindParam(':recursive', $recursive);
 
-                if($stmt->execute())
+                if ($stmt->execute())
                 {
-                    if($key == $keys[0])
+                    if ($key == $keys[0])
                     {
                         $recursive = $this->dbConnect->lastInsertId();
-//                        var_dump($recursiveId);
                     }
                     $result[] = $this->dbConnect->lastInsertId();
                 } else
@@ -117,7 +115,7 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     $result = false;
                 }
             }
-        }else
+        } else
         {
             $result = false;
         }
@@ -125,24 +123,24 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-    public function addEventTime($ids,$startTime,$endTime)
+    public function addEventTime($ids, $startTime, $endTime)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                  INSERT INTO eventsTime(event_id,startTime,endTime)
                  VALUES(:eventId,:startTime,:endTime)
                  ');
 
-            foreach($ids as &$id)
+            foreach ($ids as &$id)
             {
-                $stmt->bindParam(':eventId',$id);
-                $stmt->bindParam(':startTime',$startTime);
-                $stmt->bindParam(':endTime',$endTime);
+                $stmt->bindParam(':eventId', $id);
+                $stmt->bindParam(':startTime', $startTime);
+                $stmt->bindParam(':endTime', $endTime);
                 $result = $stmt->execute();
 
             }
-        }else
+        } else
         {
             $result = false;
         }
@@ -150,57 +148,34 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-    public function checkEventDateTimeInterval($dates,$timeStart,$timeEnd)
+    public function checkEventDateTimeInterval($dates, $timeStart, $timeEnd)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-//				 SELECT e.date
-//                 from events as e
-//                 INNER JOIN eventsTime as et on et.event_id = e.id
-//                 WHERE e.date = :date AND ((:timeStart =et.endTime OR :timeStart BETWEEN et.startTime AND et.endTime)
-//                 OR (:timeEnd  BETWEEN et.startTime AND et.endTime))
-//                 SELECT e.date,et.startTime,et.endTime
-//                 from events as e
-//                 INNER JOIN eventsTime as et on et.event_id = e.id
-//                 WHERE e.date = :date
-//                 SELECT e.date
-//                 from events as e
-//                 INNER JOIN eventsTime as et on et.event_id = e.id
-//                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime <= :timeStart)
-//                 OR (et.startTime >= :timeEnd AND et.endTime >= :timeEnd))
-            $stmt =$this->dbConnect->prepare('
-                                  SELECT e.date
+            $stmt = $this->dbConnect->prepare('
+                 SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
                  OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd))
-                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
+                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
                  ');
-            foreach($dates as &$date)
+            foreach ($dates as &$date)
             {
-//                var_dump($date);
-                $stmt->bindParam(':date',$date);
-                $stmt->bindParam(':timeStart',$timeStart);
-                $stmt->bindParam(':timeEnd',$timeEnd);
+                $stmt->bindParam(':date', $date);
+                $stmt->bindParam(':timeStart', $timeStart);
+                $stmt->bindParam(':timeEnd', $timeEnd);
                 $stmt->execute();
-//                var_dump($stmt->fetch(PDO::FETCH_ASSOC));
-//                $assocRow = $stmt->fetch(PDO::FETCH_ASSOC);
-//                                    if(!empty($assocRow))
-//                    {
-////                        var_dump($assocRow);
-//                        $result[]=$assocRow;
-//                    }
-                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+
+                while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
                 {
-//                    var_dump($assocRow);
-                    if(!empty($assocRow))
+                    if (!empty($assocRow))
                     {
-//                        var_dump($assocRow);
-                        $result[]=$assocRow['date'];
+                        $result[] = $assocRow['date'];
                     }
                 }
             }
-        }else
+        } else
         {
             $result = false;
         }
@@ -208,55 +183,20 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-    public function deleteEvent($date,$eventId)
+    public function deleteEvent($date, $eventId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                 DELETE FROM events
                 WHERE date >= :date AND id = :eventId 
                 ');
-                $stmt->bindParam(':date',$date);
-                $stmt->bindParam(':eventId',$eventId);
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':eventId', $eventId);
 
-                $result = $stmt->execute();
+            $result = $stmt->execute();
 
-        } else 
-        {
-            $result = false;
-        }
-        return $result;
-    }
-
-    public function checkEventTime($dates,$timeStart,$timeEnd,$eventId)
-    {
-        if($this->dbConnect !== 'connect error')
-        {
-            $stmt =$this->dbConnect->prepare('
-                                  SELECT e.date
-                 from events as e
-                 INNER JOIN eventsTime as et on et.event_id = e.id
-                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart AND et.event_id <> :eventId)
-                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND et.event_id <> :eventId)
-                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
-                 ');
-
-            foreach($dates as &$date)
-            {
-                $stmt->bindParam(':date',$date);
-                $stmt->bindParam(':timeStart',$timeStart);
-                $stmt->bindParam(':timeEnd',$timeEnd);
-                $stmt->bindParam(':eventId',$eventId);
-                $stmt->execute();
-                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-                {
-                    if(!empty($assocRow))
-                    {
-                        $result[]=$assocRow['date'];
-                    }
-                }
-            }
-        }else
+        } else
         {
             $result = false;
         }
@@ -264,37 +204,71 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-    public function checkRecurrenceEventTime($datesId,$timeStart,$timeEnd)
+    public function checkEventTime($dates, $timeStart, $timeEnd, $eventId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
-                                  SELECT e.date
+            $stmt = $this->dbConnect->prepare('
+                 SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart AND et.event_id <> :eventId)
                  OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND et.event_id <> :eventId)
-                    OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
+                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
                  ');
 
-            foreach($datesId as &$dateId)
+            foreach ($dates as &$date)
             {
-//                var_dump($dateId['date']);
-//                var_dump($dateId['id']);
-                $stmt->bindParam(':date',$dateId['date']);
-                $stmt->bindParam(':timeStart',$timeStart);
-                $stmt->bindParam(':timeEnd',$timeEnd);
-                $stmt->bindParam(':eventId',$dateId['id']);
+                $stmt->bindParam(':date', $date);
+                $stmt->bindParam(':timeStart', $timeStart);
+                $stmt->bindParam(':timeEnd', $timeEnd);
+                $stmt->bindParam(':eventId', $eventId);
                 $stmt->execute();
-                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+                while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
                 {
-                    if(!empty($assocRow))
+                    if (!empty($assocRow))
                     {
-                        $result[]=$assocRow['date'];
+                        $result[] = $assocRow['date'];
                     }
                 }
             }
-        }else
+        } else
+        {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    public function checkRecurrenceEventTime($datesId, $timeStart, $timeEnd)
+    {
+        if ($this->dbConnect !== 'connect error')
+        {
+            $stmt = $this->dbConnect->prepare('
+                 SELECT e.date
+                 from events as e
+                 INNER JOIN eventsTime as et on et.event_id = e.id
+                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart AND et.event_id <> :eventId)
+                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND et.event_id <> :eventId)
+                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
+                 ');
+
+            foreach ($datesId as &$dateId)
+            {
+                $stmt->bindParam(':date', $dateId['date']);
+                $stmt->bindParam(':timeStart', $timeStart);
+                $stmt->bindParam(':timeEnd', $timeEnd);
+                $stmt->bindParam(':eventId', $dateId['id']);
+                $stmt->execute();
+                while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+                {
+                    if (!empty($assocRow))
+                    {
+                        $result[] = $assocRow['date'];
+                    }
+                }
+            }
+        } else
         {
             $result = false;
         }
@@ -304,32 +278,22 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     public function selectEventDates($eventId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                  SELECT date,id
                  FROM events
                  WHERE id = :eventId OR recursive = :eventId
                  ');
 
-//            foreach($dates as &$date)
-//            {
-//                $stmt->bindParam(':date',$date);
-//                $stmt->bindParam(':timeStart',$timeStart);
-//                $stmt->bindParam(':timeEnd',$timeEnd);
-                $stmt->bindParam(':eventId',$eventId);
-                $stmt->execute();
+            $stmt->bindParam(':eventId', $eventId);
+            $stmt->execute();
             $result = [];
-                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
-                {
-//                    if(!empty($assocRow))
-//                    {
-//                    array_push($result,$assocRow['date']);
-                        $result[]=$assocRow;
-//                    }
-        }
-//            }
-        }else
+            while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            {
+                $result[] = $assocRow;
+            }
+        } else
         {
             $result = false;
         }
@@ -340,32 +304,22 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     public function selectEventDatesRecurrence($eventId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                  SELECT date,id
                  FROM events
                  WHERE recursive = :eventId
                  ');
 
-//            foreach($dates as &$date)
-//            {
-//                $stmt->bindParam(':date',$date);
-//                $stmt->bindParam(':timeStart',$timeStart);
-//                $stmt->bindParam(':timeEnd',$timeEnd);
-            $stmt->bindParam(':eventId',$eventId);
+            $stmt->bindParam(':eventId', $eventId);
             $stmt->execute();
             $result = [];
-            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
-//                    if(!empty($assocRow))
-//                    {
-//                    array_push($result,$assocRow['date']);
-                $result[]=$assocRow;
-//                    }
+                $result[] = $assocRow;
             }
-//            }
-        }else
+        } else
         {
             $result = false;
         }
@@ -375,32 +329,20 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     public function selectRecurrenceId($eventId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                  SELECT recursive
                  FROM events
                  WHERE id = :eventId
                  ');
-
-//            foreach($dates as &$date)
-//            {
-//                $stmt->bindParam(':date',$date);
-//                $stmt->bindParam(':timeStart',$timeStart);
-//                $stmt->bindParam(':timeEnd',$timeEnd);
-            $stmt->bindParam(':eventId',$eventId);
+            $stmt->bindParam(':eventId', $eventId);
             $stmt->execute();
-//            $result = [];
-            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
-//                    if(!empty($assocRow))
-//                    {
-//                    array_push($result,$assocRow['date']);
-                $result=$assocRow['recursive'];
-//                    }
+                $result = $assocRow['recursive'];
             }
-//            }
-        }else
+        } else
         {
             $result = false;
         }
@@ -410,22 +352,22 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     public function selectEventUser($eventId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                  SELECT user_id
                  FROM events
                  WHERE id = :eventId
                  ');
 
-            $stmt->bindParam(':eventId',$eventId);
+            $stmt->bindParam(':eventId', $eventId);
             $stmt->execute();
             $result = [];
-            while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
-                $result=$assocRow['user_id'];
+                $result = $assocRow['user_id'];
             }
-        }else
+        } else
         {
             $result = false;
         }
@@ -433,46 +375,16 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 
-    public function recurrenceDeleteEvent($date,$recursiveId)
+    public function recurrenceDeleteEvent($date, $recursiveId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                 DELETE FROM events
                 WHERE date >= :date AND recursive = :recursiveId
                 ');
-                $stmt->bindParam(':date',$date);
-                $stmt->bindParam(':recursiveId',$recursiveId);
-
-                $result = $stmt->execute();
-
-        } else 
-        {
-            $result = false;
-        }
-        return $result;
-    }
-
-    public function updateEvent($userId,$desc,$startTime,$endTime,$eventId,$date,$recursiveId)
-    {
-        if($this->dbConnect !== 'connect error')
-        {
-            $stmt =$this->dbConnect->prepare('
-                UPDATE events as e, eventsTime as et SET
-                e.user_id = :userId,
-                e.description = :desc,
-                e.recursive = :recursiveId,
-                et.startTime = :startTime,
-                et.endTime = :endTime
-                WHERE et.event_id=e.id AND e.id= :eventId AND e.date = :date
-                ');
-            $stmt->bindParam(':userId',$userId);
-            $stmt->bindParam(':desc',$desc);
-            $stmt->bindParam(':startTime',$startTime);
-            $stmt->bindParam(':endTime',$endTime);
-            $stmt->bindParam(':eventId',$eventId);
-            $stmt->bindParam(':date',$date);
-            $stmt->bindParam(':recursiveId',$recursiveId);
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':recursiveId', $recursiveId);
 
             $result = $stmt->execute();
 
@@ -480,16 +392,68 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         {
             $result = false;
         }
+
+        return $result;
+    }
+
+    public function deleteUserEvents($date,$userId)
+    {
+        if ($this->dbConnect !== 'connect error')
+        {
+            $stmt = $this->dbConnect->prepare('
+                DELETE FROM events
+                WHERE date > :date AND user_id = :userId
+                ');
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':userId', $userId);
+
+            $result = $stmt->execute();
+
+        } else
+        {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    public function updateEvent($userId, $desc, $startTime, $endTime, $eventId, $date, $recursiveId)
+    {
+        if ($this->dbConnect !== 'connect error')
+        {
+            $stmt = $this->dbConnect->prepare('
+                UPDATE events as e, eventsTime as et SET
+                e.user_id = :userId,
+                e.description = :desc,
+                e.recursive = :recursiveId,
+                et.startTime = :startTime,
+                et.endTime = :endTime
+                WHERE et.event_id=e.id AND e.id= :eventId AND e.date = :date
+                ');
+            $stmt->bindParam(':userId', $userId);
+            $stmt->bindParam(':desc', $desc);
+            $stmt->bindParam(':startTime', $startTime);
+            $stmt->bindParam(':endTime', $endTime);
+            $stmt->bindParam(':eventId', $eventId);
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':recursiveId', $recursiveId);
+
+            $result = $stmt->execute();
+
+        } else
+        {
+            $result = false;
+        }
+
         return $result;
     }
 
 
-
-    public function recurrenceUpdateEventNoChangeRecurrence($userId,$desc,$startTime,$endTime,$dates)
+    public function recurrenceUpdateEventNoChangeRecurrence($userId, $desc, $startTime, $endTime, $dates)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                 UPDATE events as e, eventsTime as et SET
                 e.user_id = :userId,
                 e.description = :desc,
@@ -498,15 +462,15 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 WHERE et.event_id=e.id AND e.id= :eventId AND e.date = :date
                 ');
 
-            $stmt->bindParam(':userId',$userId);
-            $stmt->bindParam(':desc',$desc);
-            $stmt->bindParam(':startTime',$startTime);
-            $stmt->bindParam(':endTime',$endTime);
+            $stmt->bindParam(':userId', $userId);
+            $stmt->bindParam(':desc', $desc);
+            $stmt->bindParam(':startTime', $startTime);
+            $stmt->bindParam(':endTime', $endTime);
 
-            foreach($dates as &$val)
+            foreach ($dates as &$val)
             {
-                $stmt->bindParam(':eventId',$val['id']);
-                $stmt->bindParam(':date',$val['date']);
+                $stmt->bindParam(':eventId', $val['id']);
+                $stmt->bindParam(':date', $val['date']);
                 $result = $stmt->execute();
             }
 
@@ -515,14 +479,15 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         {
             $result = false;
         }
+
         return $result;
     }
 
-    public function recurrenceUpdateEventChangeRecurrence($userId,$desc,$startTime,$endTime,$dates,$recursiveId)
+    public function recurrenceUpdateEventChangeRecurrence($userId, $desc, $startTime, $endTime, $dates, $recursiveId)
     {
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                 UPDATE events as e, eventsTime as et SET
                 e.user_id = :userId,
                 e.description = :desc,
@@ -532,16 +497,16 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 WHERE et.event_id=e.id AND e.id= :eventId AND e.date = :date
                 ');
 
-            $stmt->bindParam(':userId',$userId);
-            $stmt->bindParam(':desc',$desc);
-            $stmt->bindParam(':startTime',$startTime);
-            $stmt->bindParam(':endTime',$endTime);
-            $stmt->bindParam(':recursiveId',$recursiveId);
+            $stmt->bindParam(':userId', $userId);
+            $stmt->bindParam(':desc', $desc);
+            $stmt->bindParam(':startTime', $startTime);
+            $stmt->bindParam(':endTime', $endTime);
+            $stmt->bindParam(':recursiveId', $recursiveId);
 
-            foreach($dates as &$val)
+            foreach ($dates as &$val)
             {
-                $stmt->bindParam(':eventId',$val['id']);
-                $stmt->bindParam(':date',$val['date']);
+                $stmt->bindParam(':eventId', $val['id']);
+                $stmt->bindParam(':date', $val['date']);
                 $result = $stmt->execute();
             }
 
@@ -550,66 +515,35 @@ $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         {
             $result = false;
         }
+
         return $result;
     }
 
-    public function checkRecurrence($date,$eventId)
+    public function checkRecurrence($date, $eventId)
     {
-        //var_dump($date,$eventId);
-        if($this->dbConnect !== 'connect error')
+        if ($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('
+            $stmt = $this->dbConnect->prepare('
                 SELECT recursive FROM events
                 WHERE date = :date AND id = :eventId
                 ');
-                $stmt->bindParam(':date',$date);
-                $stmt->bindParam(':eventId',$eventId);
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':eventId', $eventId);
 
-                $stmt->execute();
-                //var_dump($stmt->fetchAll(PDO::FETCH_ASSOC));
-                while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            $stmt->execute();
+            while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            {
+                if (!empty($assocRow))
                 {
-//                    var_dump($assocRow);
-                    if(!empty($assocRow))
-                    {
-//                        var_dump($assocRow);
-                        $result=$assocRow['recursive'];
-                        //var_dump($assocRow);
-                    }
+                    $result = $assocRow['recursive'];
                 }
+            }
 
-        } else 
+        } else
         {
             $result = false;
         }
+
         return $result;
     }
-
-//    private function generateEventUpdateSql($params)
-//    {
-//        $arrLength = count($params);
-//        $i = 1;
-//        $sql = 'UPDATE events as e, eventsTime as et SET ';
-//
-//        foreach($params as $key=>$val)
-//        {
-//            if($val !='')
-//            {
-//                if ($arrLength != $i)
-//                {
-//                    $sql .= $key . '=:' . $key . ',';
-//                } else
-//                {
-//                    $sql .= $key . '=:' . $key ;
-//                }
-//            }
-//            $i++;
-//        }
-//        $sql .= ' WHERE id=:id';
-//        return $sql;
-//    }
 }
-
-
-//$c = new EventSql();
-//$c->getEventsByMonth('2017-10-01','2017-10-31');

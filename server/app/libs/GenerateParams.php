@@ -7,7 +7,8 @@ class GenerateParams
         $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHI JKLMNOPRQSTUVWXYZ0123456789";
         $code = "";
         $clen = strlen($chars) - 1;
-        while (strlen($code) < $length) {
+        while (strlen($code) < $length)
+        {
             $code .= $chars[mt_rand(0, $clen)];
         }
 
@@ -16,13 +17,13 @@ class GenerateParams
 
     public function generatePutData($putStr)
     {
-        $result =[];
-        $putArr = explode('&',$putStr);
+        $result = [];
+        $putArr = explode('&', $putStr);
 
-        foreach($putArr as $value)
+        foreach ($putArr as $value)
         {
-            $params = explode('=',$value);
-            $result[$params[0]] = json_decode($params[1],true);
+            $params = explode('=', $value);
+            $result[$params[0]] = json_decode($params[1], true);
         }
 
         return $result;

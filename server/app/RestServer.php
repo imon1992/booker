@@ -1,8 +1,11 @@
 <?php
 require_once('Autoloader.php');
-spl_autoload_register(array('Autoloader', 'loadPackages'));
+spl_autoload_register([
+    'Autoloader',
+    'loadPackages'
+]);
 
-include ('config.php');
+include('config.php');
 
 class RestServer
 {
@@ -29,7 +32,8 @@ class RestServer
         list($s, $user, $REST, $server, $api, $dir, $params) = explode("/", $this->url, 7);
         $this->classCreate($dir);
 
-        switch (trim($this->requestMethod)) {
+        switch (trim($this->requestMethod))
+        {
             case 'GET':
                 return $this->setMethod('get' . ucfirst($dir), $params);
                 break;
@@ -43,18 +47,18 @@ class RestServer
                 return $this->setMethod('delete' . ucfirst($dir), $params);
                 break;
             //default:
-              //  $this->sendHeaders(501);
+            //  $this->sendHeaders(501);
         }
     }
 
     protected function setMethod($classMethod, $params)
     {
-//        var_dump($classMethod);
-//        var_dump($params);
-        if (method_exists($this->class, $classMethod)) {
-            if(is_string($params) || is_array($params)){
+        if (method_exists($this->class, $classMethod))
+        {
+            if (is_string($params) || is_array($params))
+            {
                 $result = $this->class->$classMethod($params);
-                if($result === 'error')
+                if ($result === 'error')
                 {
                     $this->sendHeaders(500);
                 }
@@ -62,13 +66,10 @@ class RestServer
             {
                 $this->sendHeaders(403);
             }
-//            if($result['hash'] && $result['id'])
-//            {
-//                setcookie("id", $result['id'], time()+3600);
-//                setcookie("hash", $result['hash'], time()+3600);
-//            }
+
             return $result;
-        } else {
+        } else
+        {
             $this->sendHeaders(501);
         }
     }
@@ -80,7 +81,7 @@ class RestServer
 
     private function getStatusMessage($code)
     {
-        $status = array(
+        $status = [
             100 => 'Continue',
             101 => 'Switching Protocols',
             200 => 'OK',
@@ -121,7 +122,9 @@ class RestServer
             502 => 'Bad Gateway',
             503 => 'Service Unavailable',
             504 => 'Gateway Timeout',
-            505 => 'HTTP Version Not Supported');
+            505 => 'HTTP Version Not Supported'
+        ];
+
         return ($status[$code]) ? $status[$code] : $status[500];
     }
 }

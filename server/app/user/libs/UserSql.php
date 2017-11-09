@@ -7,13 +7,7 @@ class UserSql
 
     public function __construct()
     {
-        $baseAndHostDbName = MY_SQL_DB . ':host=' . MY_SQL_HOST . '; dbname=' . MY_SQL_DB_NAME;
-        try {
-            $this->dbConnect = new PDO($baseAndHostDbName, MY_SQL_USER, MY_SQL_PASSWORD);
-            $this->dbConnect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
-            $this->dbConect = 'connect error';
-        }
+        $this->dbConnect=DbConnection::getInstance();
     }
 
     public function getUsers()
@@ -21,8 +15,9 @@ class UserSql
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
-            $stmt =$this->dbConnect->prepare('SELECT id,name,isActive
-                                                FROM bookerUsers
+            $stmt =$this->dbConnect->prepare('
+                SELECT id,name,isActive
+                FROM bookerUsers
                                             ');
             $stmt->execute();
             while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
@@ -80,6 +75,26 @@ class UserSql
         }else
         {
             $result = 'error';
+        }
+
+        return $result;
+    }
+
+    public function deleteUser($id,$isActive = 'removed')
+    {
+        if($this->dbConnect !== 'connect error')
+        {
+            $stmt =$this->dbConnect->prepare('
+                UPDATE bookerUsers
+                SET isActive =:isActive
+                WHERE id=:id
+                ');
+            $stmt->bindParam(':isActive',$isActive);
+            $stmt->bindParam(':id',$id);
+            $result = $stmt->execute();
+        }else
+        {
+            $result = false;
         }
 
         return $result;
