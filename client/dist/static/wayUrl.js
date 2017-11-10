@@ -1,4 +1,5 @@
      var loginTaken = 'login is already taken';
+     var showYearsCount = 5;
       var eventUrl= 'http://192.168.0.15/~user14/booker/client/api/event/';
      //var eventUrl= 'http://booker/user14/booker/client/api/event/';
       var authUrl= 'http://192.168.0.15/~user14/booker/client/api/auth/';
