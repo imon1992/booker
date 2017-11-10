@@ -21,12 +21,20 @@ class RestServer
         $this->url = $_SERVER['REQUEST_URI'];
     }
 
+    /**
+     * @param string $dir
+     * @return object
+     * creates the necessary class
+     */
     private function classCreate($dir)
     {
         $class = ucfirst($dir) . 's';
         $this->class = new $class;
     }
-
+    /**
+     * @return object
+     * checks the request method and starts execution
+     */
     public function run()
     {
         list($s, $user, $REST, $server, $api, $dir, $params) = explode("/", $this->url, 7);
@@ -35,22 +43,30 @@ class RestServer
         switch (trim($this->requestMethod))
         {
             case 'GET':
-                return $this->setMethod('get' . ucfirst($dir), $params);
+                $result = $this->setMethod('get' . ucfirst($dir), $params);
+                return $this->sendResponse($result);
                 break;
             case 'POST':
-                return $this->setMethod('post' . ucfirst($dir), '');
+                $result = $this->setMethod('post' . ucfirst($dir), '');
+                return $this->sendResponse($result);
                 break;
             case 'PUT':
-                return $this->setMethod('put' . ucfirst($dir), '');
+                $result = $this->setMethod('put' . ucfirst($dir), '');
+                return $this->sendResponse($result);
                 break;
             case 'DELETE':
-                return $this->setMethod('delete' . ucfirst($dir), $params);
-                break;
-            //default:
-            //  $this->sendHeaders(501);
+                $result = $this->setMethod('delete' . ucfirst($dir), $params);
+                return $this->sendResponse($result);
+//                break;
         }
     }
 
+    /**
+     * @param string $classMethod
+     * @param string $params
+     * @return object
+     * start necessary method
+     */
     protected function setMethod($classMethod, $params)
     {
         if (method_exists($this->class, $classMethod))
@@ -74,9 +90,19 @@ class RestServer
         }
     }
 
+
     private function sendHeaders($errorCode)
     {
         header("HTTP/1.1 $errorCode " . $this->getStatusMessage($errorCode));
+    }
+
+    private function sendResponse($result)
+    {
+        if(RESPONSE_METHOD == 'json')
+        {
+            header($this->getStatusMessage('contentTypeJson'));
+            echo json_encode($result);
+        }
     }
 
     private function getStatusMessage($code)
@@ -122,7 +148,8 @@ class RestServer
             502 => 'Bad Gateway',
             503 => 'Service Unavailable',
             504 => 'Gateway Timeout',
-            505 => 'HTTP Version Not Supported'
+            505 => 'HTTP Version Not Supported',
+            'contentTypeJson' => 'Content-Type: application/json'
         ];
 
         return ($status[$code]) ? $status[$code] : $status[500];

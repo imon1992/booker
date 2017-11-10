@@ -28,4 +28,33 @@ class SqlForTest
 
         return $result;
     }
+
+    public function getUpdateId($date,$userId,$roomId,$desc,$time)
+    {
+        if ($this->dbConnect !== 'connect error')
+        {
+            $stmt = $this->dbConnect->prepare('
+                SELECT id
+                FROM events
+                WHERE date=:date AND user_id=:userId AND boardroom_id = :roomId
+                AND description = :desc AND timeOfCreate = :timeCreate
+                LIMIT 1
+                ');
+            $stmt->bindParam(':date', $date);
+            $stmt->bindParam(':userId', $userId);
+            $stmt->bindParam(':roomId', $roomId);
+            $stmt->bindParam(':desc', $desc);
+            $stmt->bindParam(':timeCreate', $time);
+            $stmt->execute();
+            while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
+            {
+                $result = $assocRow['id'];
+            }
+        } else
+        {
+            $result = false;
+        }
+
+        return $result;
+    }
 }

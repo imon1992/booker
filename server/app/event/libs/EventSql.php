@@ -84,7 +84,7 @@ class EventSql
         return $result;
     }
 
-    public function addNewEvent($userId, $boardRoom, $description, $dates, $timeOfCreate, $recursive)
+    public function addNewEvent($userId, $boardRoom, $description, $dates, $timeOfCreate, $recursive=0)
     {
         if ($this->dbConnect !== 'connect error')
         {
@@ -157,8 +157,8 @@ class EventSql
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
-                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd))
-                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd)
+                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd)
+                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd))
                  ');
             foreach ($dates as &$date)
             {
@@ -244,13 +244,27 @@ class EventSql
     {
         if ($this->dbConnect !== 'connect error')
         {
+//            var_dump($datesId);
+//                 SELECT e.date
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime >= :timeStart AND et.event_id <> :eventId)
+//                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND et.event_id <> :eventId)
+//                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
+
+//            SELECT e.date
+//                 from events as e
+//                 INNER JOIN eventsTime as et on et.event_id = e.id
+//                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
+//                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd)
+//                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd))
             $stmt = $this->dbConnect->prepare('
-                 SELECT e.date
+            SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
                  WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart AND et.event_id <> :eventId)
                  OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND et.event_id <> :eventId)
-                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND et.event_id <> :eventId))
+                 OR (et.startTime >= :timeStart AND et.endTime < :timeEnd AND et.event_id <> :eventId))
                  ');
 
             foreach ($datesId as &$dateId)
@@ -302,17 +316,18 @@ class EventSql
     }
 
 
-    public function selectEventDatesRecurrence($eventId)
+    public function selectEventDatesRecurrence($eventId,$date)
     {
         if ($this->dbConnect !== 'connect error')
         {
             $stmt = $this->dbConnect->prepare('
                  SELECT date,id
                  FROM events
-                 WHERE recursive = :eventId
+                 WHERE recursive = :eventId AND date >= :date
                  ');
 
             $stmt->bindParam(':eventId', $eventId);
+            $stmt->bindParam(':date', $date);
             $stmt->execute();
             $result = [];
             while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))

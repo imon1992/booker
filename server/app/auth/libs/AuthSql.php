@@ -56,7 +56,7 @@ class AuthSql
         }
     }
 
-    public function checkUser($login, $password)
+    public function checkUser($login, $password, $isActive = 'active')
     {
         if ($this->dbConnect !== 'connect error')
         {
@@ -64,11 +64,12 @@ class AuthSql
                 SELECT r.role,b.id
                 FROM bookerUsers as b
                 INNER JOIN roles as r on r.id = b.role
-                WHERE b.login=:login AND b.password=:password
+                WHERE b.login=:login AND b.password=:password AND isActive = :isActive
                 ');
 
             $stmt->bindParam(':login', $login);
             $stmt->bindParam(':password', $password);
+            $stmt->bindParam(':isActive', $isActive);
             $stmt->execute();
             while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
@@ -128,7 +129,6 @@ class AuthSql
         return $result;
     }
 
-//
     public function checkUserOrAdmin($hash, $id)
     {
         if ($this->dbConnect !== 'connect error')
