@@ -1,5 +1,5 @@
       // // var authorUrl= 'http://192.168.0.15/~user14/bookShop1/client/api/author/';
-      var authorUrl= 'http://bookshop1/user14/bookShopRest/client/api/author/';
+      //var authorUrl= 'http://bookshop1/user14/bookShopRest/client/api/author/';
       // // var genreUrl= 'http://192.168.0.15/~user14/bookShop1/client/api/genre/';
       // var genreUrl= 'http://bookshop1/user14/bookShopRest/client/api/genre/';
       // // var bookUrl= 'http://192.168.0.15/~user14/bookShop1/client/api/book/';
@@ -18,11 +18,11 @@
       // // var statusUrl= 'http://bookshop1/user14/bookShopRest/client/api/orderStatus/';
 
       var loginTaken = 'login is already taken';
-      // var eventUrl= 'http://192.168.0.15/~user14/booker/client/api/event/';
-      var eventUrl= 'http://booker/user14/booker/client/api/event/';
-      // var authUrl= 'http://192.168.0.15/~user14/booker/client/api/auth/';
-      var authUrl= 'http://booker/user14/booker/client/api/auth/';
-      // var userUrl= 'http://192.168.0.15/~user14/booker/client/api/user/';
-      var userUrl= 'http://booker/user14/booker/client/api/user/';
-      var host = 'http://booker/user14/booker/dist/#/'
-      // var host = 'hhttp://192.168.0.15/~user14/booker/asd/#/'
+       var eventUrl= 'http://192.168.0.15/~user14/booker/client/api/event/';
+      //var eventUrl= 'http://booker/user14/booker/client/api/event/';
+       var authUrl= 'http://192.168.0.15/~user14/booker/client/api/auth/';
+      //var authUrl= 'http://booker/user14/booker/client/api/auth/';
+       var userUrl= 'http://192.168.0.15/~user14/booker/client/api/user/';
+      //var userUrl= 'http://booker/user14/booker/client/api/user/';
+      //var host = 'http://booker/user14/booker/dist/#/'
+       var host = 'hhttp://192.168.0.15/~user14/booker/client/dist/#/'

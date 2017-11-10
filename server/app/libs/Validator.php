@@ -3,10 +3,11 @@
 class validator
 {
     public function validateDate($date,$format = 'Y-m-d')
-{
-    $dateFormat = DateTime::createFromFormat($format, $date);
-    return $dateFormat && $dateFormat->format($format) == $date;
-}
+    {
+        date_default_timezone_set('Europe/Kiev');
+        $dateFormat = DateTime::createFromFormat($format, $date);
+        return $dateFormat && $dateFormat->format($format) == $date;
+    }
 
     public function validateEmail($email)
     {
@@ -28,6 +29,7 @@ class validator
 
     public function validateTime($time,$format = 'H:i:s')
     {
+        date_default_timezone_set('Europe/Kiev');
         $dateFormat = DateTime::createFromFormat($format, $time);
         return $dateFormat && $dateFormat->format($format) == $time;
     }
