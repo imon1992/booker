@@ -196,7 +196,7 @@ class Events
         }
 
         $checkDates = $this->formCheckDates($recursive, $repetitionCount, $date);
-        $busyDates = $this->eventSql->checkEventDateTimeInterval($checkDates, $timeStart, $timeEnd);
+        $busyDates = $this->eventSql->checkEventDateTimeInterval($checkDates, $timeStart, $timeEnd,$boardRoom);
 
         if ($busyDates != null)
         {

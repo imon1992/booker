@@ -148,7 +148,7 @@ class EventSql
         return $result;
     }
 
-    public function checkEventDateTimeInterval($dates, $timeStart, $timeEnd)
+    public function checkEventDateTimeInterval($dates, $timeStart, $timeEnd, $roomId)
     {
         if ($this->dbConnect !== 'connect error')
         {
@@ -156,15 +156,17 @@ class EventSql
                  SELECT e.date
                  from events as e
                  INNER JOIN eventsTime as et on et.event_id = e.id
-                 WHERE e.date = :date AND ((et.startTime <= :timeStart AND et.endTime > :timeStart)
-                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd)
-                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd))
+                 WHERE e.date = :date 
+                 AND ((et.startTime <= :timeStart AND et.endTime > :timeStart AND boardroom_id=:roomId)
+                 OR (et.startTime >= :timeEnd AND et.endTime < :timeEnd AND boardroom_id=:roomId)
+                 OR (et.startTime >= :timeStart AND et.endTime <= :timeEnd AND boardroom_id=:roomId))
                  ');
             foreach ($dates as &$date)
             {
                 $stmt->bindParam(':date', $date);
                 $stmt->bindParam(':timeStart', $timeStart);
                 $stmt->bindParam(':timeEnd', $timeEnd);
+                $stmt->bindParam(':roomId', $roomId);
                 $stmt->execute();
 
                 while ($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
