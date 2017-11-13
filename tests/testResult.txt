@@ -1,0 +1,7 @@
+PHPUnit 3.7.38 by Sebastian Bergmann.
+
+..................
+
+Time: 1.01 seconds, Memory: 2.25MB
+
+OK (18 tests, 20 assertions)

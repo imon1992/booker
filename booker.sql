@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 06 2017 г., 16:17
+-- Время создания: Ноя 13 2017 г., 10:59
 -- Версия сервера: 5.5.53
 -- Версия PHP: 5.5.38
 
@@ -14,7 +14,7 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- База данных: `booker`
@@ -36,7 +36,9 @@ CREATE TABLE `boardrooms` (
 --
 
 INSERT INTO `boardrooms` (`id`, `name`) VALUES
-(1, 'Badroom1');
+(1, 'boardroom 1'),
+(2, 'boardroom 2'),
+(3, 'boardroom 3');
 
 -- --------------------------------------------------------
 
@@ -60,8 +62,9 @@ CREATE TABLE `bookerUsers` (
 --
 
 INSERT INTO `bookerUsers` (`id`, `name`, `email`, `login`, `password`, `hash`, `role`, `isActive`) VALUES
-(1, 'Abdrew Kolotii', 'imon@mksat.net', 'imon', '1234', '', 1, 'active'),
-(2, 'Vasya Pupkin', 'som2mail,ru', 'asde', '1234', '', 2, 'active');
+(1, 'admin', 'admin@mksat.net', 'admin', 'ec6a6536ca304edf844d1d248a4f08dc', 'a62470c6c0e442cc8242b211904b9192', 1, 'active'),
+(2, 'test1', 'test1@mksat.net', 'test1', 'ec6a6536ca304edf844d1d248a4f08dc', '680e1326ac50b52d53f23d11dbc55d29', 2, 'active'),
+(3, 'test2', 'test2@mksat.net', 'test2', 'ec6a6536ca304edf844d1d248a4f08dc', 'f6babaf169e008ea3958a26104667a70', 2, 'active');
 
 -- --------------------------------------------------------
 
@@ -84,11 +87,14 @@ CREATE TABLE `events` (
 --
 
 INSERT INTO `events` (`id`, `user_id`, `boardroom_id`, `description`, `date`, `timeOfCreate`, `recursive`) VALUES
-(1, 1, 1, 'some desc', '2017-11-08', '2017-10-31 10:00:00', 0),
-(2, 1, 1, 'some desc', '2017-11-15', '2017-10-31 10:00:00', 1),
-(3, 1, 1, 'some desc', '2017-11-22', '2017-10-31 10:00:00', 1),
-(4, 1, 1, 'some desc', '2017-11-08', '2017-10-31 10:00:00', 0),
-(5, 1, 1, 'some desc', '2017-11-15', '2017-10-31 10:00:00', 4);
+(1, 2, 1, 'meeting', '2017-11-13', '2017-11-12 19:28:00', 1),
+(2, 2, 1, 'meeting of leading developers', '2017-11-01', '2017-11-12 21:14:02', 0),
+(3, 2, 1, 'meeting of leading developers', '2017-12-01', '2017-11-12 21:14:02', 2),
+(4, 2, 1, 'weekly meeting', '2017-11-02', '2017-11-12 21:15:52', 0),
+(5, 2, 1, 'weekly meeting', '2017-11-09', '2017-11-12 21:15:52', 4),
+(6, 2, 1, 'weekly meeting', '2017-11-16', '2017-11-12 21:15:52', 4),
+(7, 2, 1, 'weekly meeting', '2017-11-23', '2017-11-12 21:15:52', 4),
+(8, 2, 1, 'weekly meeting', '2017-11-30', '2017-11-12 21:15:52', 4);
 
 -- --------------------------------------------------------
 
@@ -108,11 +114,14 @@ CREATE TABLE `eventsTime` (
 --
 
 INSERT INTO `eventsTime` (`id`, `event_id`, `startTime`, `endTime`) VALUES
-(1, 1, '14:30:00', '15:30:00'),
-(2, 2, '14:30:00', '15:30:00'),
-(3, 3, '14:30:00', '15:30:00'),
-(4, 4, '12:30:00', '13:30:00'),
-(5, 5, '12:30:00', '13:30:00');
+(1, 1, '08:00:00', '12:00:00'),
+(2, 2, '08:00:00', '10:00:00'),
+(3, 3, '08:00:00', '10:00:00'),
+(4, 4, '10:00:00', '12:00:00'),
+(5, 5, '10:00:00', '12:00:00'),
+(6, 6, '10:00:00', '12:00:00'),
+(7, 7, '10:00:00', '12:00:00'),
+(8, 8, '10:00:00', '12:00:00');
 
 -- --------------------------------------------------------
 
@@ -179,22 +188,22 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT для таблицы `boardrooms`
 --
 ALTER TABLE `boardrooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT для таблицы `bookerUsers`
 --
 ALTER TABLE `bookerUsers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT для таблицы `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT для таблицы `eventsTime`
 --
 ALTER TABLE `eventsTime`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT для таблицы `roles`
 --

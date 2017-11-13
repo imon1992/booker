@@ -11,8 +11,10 @@ class Auths
     }
 
     /**
-     * @param boolean $params
-     * @return string|array|boolean
+     * @param string $params
+     * @return string Return error
+     * @return array Return array of user(s)
+     * @return boolean Return false on error or failure.
      * check login/password and set cookies
      */
     public function putAuth($params)
@@ -36,9 +38,9 @@ class Auths
         {
             $generateParams = new GenerateParams();
             $hash = md5($generateParams->generateCode(10));
-            setcookie(COOKIE_HASH, $hash, time() + 3600, '/');
-            setcookie(COOKIE_ID, $roleId['id'], time() + 3600, '/');
-            setcookie(COOKIE_ROLE, $roleId['role'], time() + 3600, '/');
+            setcookie(COOKIE_HASH, $hash, time() + COOKIE_TIME, '/');
+            setcookie(COOKIE_ID, $roleId['id'], time() + COOKIE_TIME, '/');
+            setcookie(COOKIE_ROLE, $roleId['role'], time() + COOKIE_TIME, '/');
             $this->authSql->setNewHash($hash, $putData[INPUT_LOGIN], md5(md5($putData[INPUT_PASSWORD])));
             $result['role'] = $roleId['role'];
             $result['err'] = null;
@@ -52,7 +54,34 @@ class Auths
 
     /**
      * @param boolean $params
-     * @return string|array|boolean
+     * @return string Return error
+     * @return boolean Return true is set is successful, false on error or failure.
+     * delete cookie
+     */
+    public function deleteAuth($params)
+    {
+        if ($params != false)
+        {
+            return false;
+        }
+
+        if (!$this->checkHash($_COOKIE[COOKIE_HASH], $_COOKIE[COOKIE_ID]))
+        {
+            return INTRUDER;
+        }
+        if(setcookie(COOKIE_HASH, '', time() - COOKIE_TIME, '/')
+        && setcookie(COOKIE_ID, '', time() - COOKIE_TIME, '/')
+        && setcookie(COOKIE_ROLE, '', time() - COOKIE_TIME, '/'))
+        {
+            return true;
+        }
+
+    }
+
+    /**
+     * @param boolean $params
+     * @return string Return error
+     * @return boolean Return true is create is successful, false on error or failure.
      * create new user
      */
     public function postAuth($params)
@@ -93,7 +122,7 @@ class Auths
     /**
      * @param string $hash
      * @param integer $id
-     * @return boolean
+     * @return boolean Return true if check is successful and otherwise false
      * checks if the cookie data of the admin is correct
      * and checks if there is admin
      */

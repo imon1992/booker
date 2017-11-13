@@ -16,7 +16,10 @@ class Users
 
     /**
      * @param string $params
-     * @return boolean|array|string
+     * @return array Return
+     * @return string Return error
+     * @return boolean Return false on error or failure.
+     * @return array Return array of user(s) information
      * provides information about users
      */
     public function getUser($params)
@@ -34,7 +37,6 @@ class Users
         } elseif ($paramsCount == 1
             && $this->validator->validateInt($params[0]))
         {
-//            return $_COOKIE;
             if (!$this->checkHash($_COOKIE[COOKIE_HASH], $_COOKIE[COOKIE_ID]))
             {
                 return INTRUDER;
@@ -50,7 +52,8 @@ class Users
 
     /**
      * @param boolean $params
-     * @return boolean|array|string
+     * @return string Return error
+     * @return boolean Return false on error or failure.
      * update users info
      */
     public function putUser($params)
@@ -85,7 +88,8 @@ class Users
 
     /**
      * @param boolean $params
-     * @return boolean|array|string
+     * @return string Return error
+     * @return boolean Return false on error or failure.
      * set user status to removed and deleted all user events after date
      */
     public function deleteUser($params)

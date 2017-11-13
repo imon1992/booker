@@ -13,10 +13,13 @@ class Events
         $this->authSql = new AuthSql();
         $this->validator = new Validator();
     }
+
     /**
      * @param string $params
-     * @return string|array
-     * gives the event or information about them
+     * @return string Return error
+     * @return array Return array of event(s)
+     * @return boolean Return false on error or failure.
+     * get all event or event info
      */
     public function getEvent($params)
     {
@@ -51,9 +54,10 @@ class Events
     }
 
     /**
-     * @param boolean $params
-     * @return string|boolean
-     * delete event recursive or once
+     * @param string $params
+     * @return string Return error
+     * @return boolean Return true is deleted is successful, false on error or failure.
+     * delete event(s)
      */
     public function deleteEvent($params)
     {
@@ -96,8 +100,10 @@ class Events
     }
 
     /**
-     * @param boolean $params
-     * @return string|boolean|array
+     * @param string $params
+     * @return string Return error
+     * @return array Return array of busy date(s)
+     * @return boolean Return false on error or failure.
      * update event recursive or once
      */
     public function putEvent($params)
@@ -125,11 +131,10 @@ class Events
         {
             return WRONG_DATA;
         }
-
         if ($putData[INPUT_EVENT_RECURSIVE] == 0)
         {
             $busyDates = $this->eventSql->checkEventTime($checkDates, $putData[INPUT_EVENT_START_TIME],
-                $putData[INPUT_EVENT_END_TIME], $putData[INPUT_EVENT_ID]);
+                $putData[INPUT_EVENT_END_TIME], $putData[INPUT_EVENT_ID],$putData[INPUT_EVENT_DATE]);
             $result = $this->noRecursiveUpdate($busyDates, $putData[INPUT_EVENT_ID],
                 $putData[INPUT_USER_ID], $putData[INPUT_EVENT_DESCRIPTION],
                 $putData[INPUT_EVENT_START_TIME], $putData[INPUT_EVENT_END_TIME],
@@ -138,7 +143,7 @@ class Events
         {
             $busyDatesUpdateDates = $this->formRecursiveBusyAndUpdateDates($putData[INPUT_EVENT_DATE],
                 $putData[INPUT_EVENT_ID], $putData[INPUT_EVENT_START_TIME],
-                $putData[INPUT_EVENT_END_TIME]);
+                $putData[INPUT_EVENT_END_TIME],$putData[INPUT_ROOM_ID]);
             $busyDates = $busyDatesUpdateDates['busyDates'];
             $updateDates = $busyDatesUpdateDates['updateDates'];
             $updateDates = $this->diffDatesIdUpdateDates($busyDates, $updateDates);
@@ -155,12 +160,14 @@ class Events
         return $result;
     }
 
-
     /**
-     * @param boolean $params
-     * @return string|boolean|array
+     * @param string $params
+     * @return string Return error
+     * @return array Return array of busy or weekend date(s)
+     * @return boolean Return false on error or failure.
      * create one event or recursive
      */
+
     public function postEvent($params)
     {
         if ($params != false)
@@ -228,26 +235,26 @@ class Events
     }
 
     /**
-     * @param string $date
-     * @param integer $eventId
-     * @param string $startTime
-     * @param string $endTime
-     * @return array
+     * @param string $date event date
+     * @param integer $eventId event id
+     * @param string $startTime time when event start
+     * @param string $endTime time when event end
+     * @return array Return array of date(s) for update and array of busy date(s)
      * Generates busy dates and dates for updates
      */
-    protected function formRecursiveBusyAndUpdateDates($date, $eventId, $startTime, $endTime)
+    protected function formRecursiveBusyAndUpdateDates($date, $eventId, $startTime, $endTime,$roomId)
     {
         $recursiveOrNot = $this->eventSql->checkRecurrence($date, $eventId);
         if ($recursiveOrNot == 0)
         {
             $dates = $this->eventSql->selectEventDates($eventId);
-            $busyDates = $this->eventSql->checkRecurrenceEventTime($dates, $startTime, $endTime);
+            $busyDates = $this->eventSql->checkRecurrenceEventTime($dates, $startTime, $endTime,$roomId);
 
         } else
         {
             $recurrenceId = $this->eventSql->selectRecurrenceId($eventId);
             $dates = $this->eventSql->selectEventDatesRecurrence($recurrenceId, $date);
-            $busyDates = $this->eventSql->checkRecurrenceEventTime($dates, $startTime, $endTime);
+            $busyDates = $this->eventSql->checkRecurrenceEventTime($dates, $startTime, $endTime,$roomId);
         }
 
         return [
@@ -257,9 +264,9 @@ class Events
     }
 
     /**
-     * @param array $dates
-     * @param array $busyDates
-     * @return array
+     * @param array $dates date(s) for update
+     * @param array $busyDates busy date(s)
+     * @return array Return array of date(s) for update
      * calculates the discrepancy between free and busy dates
      */
     protected function diffDatesIdUpdateDates($busyDates, $dates)
@@ -281,14 +288,14 @@ class Events
         return $dates;
     }
     /**
-     * @param array $busyDates
-     * @param integer $eventId
-     * @param integer $userId
-     * @param string $desc
-     * @param string $startTime
-     * @param string $endTime
-     * @param string $date
-     * @return boolean
+     * @param array $busyDates busy date(s)
+     * @param integer $eventId event id
+     * @param integer $userId user id
+     * @param string $desc description of event
+     * @param string $startTime time when event start
+     * @param string $endTime time when event end
+     * @param string $date event date
+     * @return boolean Return true is update is successful, false on error or failure.
      * update one event
      */
     protected function noRecursiveUpdate($busyDate, $eventId, $userId, $desc, $startTime, $endTime, $date)
@@ -309,13 +316,13 @@ class Events
     }
 
     /**
-     * @param array $dates
-     * @param integer $eventId
-     * @param integer $userId
-     * @param string $desc
-     * @param string $startTime
-     * @param string $endTime
-     * @return boolean
+     * @param array $dates dates for update
+     * @param integer $eventId event id
+     * @param integer $userId user
+     * @param string $desc description of event
+     * @param string $startTime time when event start
+     * @param string $endTime time when event end
+     * @return boolean Return true is update is successful, false on error or failure.
      * recursive update event
      */
     protected function recursiveUpdate($dates, $eventId, $userId, $desc, $startTime, $endTime)
@@ -336,11 +343,11 @@ class Events
     }
 
     /**
-     * @param string $hash
-     * @param integer $id
-     * @return boolean
-     * checks if the cookie data of the user or administrator is correct
-     * and checks if there is a user or admin
+     * @param string $hash user hash
+     * @param integer $id user id
+     * @return boolean Return true if check is successful and otherwise false
+     * checks if the cookie data of the admin is correct
+     * and checks if there is admin
      */
     protected function checkHash($hash, $id)
     {
@@ -363,8 +370,8 @@ class Events
     }
 
     /**
-     * @param array $checkDates
-     * @return array
+     * @param array $checkDates date(s) need to be checked
+     * @return array Return array of weekend(s) date(s) and date(s) for insert
      * Check if the dates are weekend
      */
     protected function checkWeekendDays($checkDates)
@@ -391,9 +398,9 @@ class Events
     }
 
     /**
-     * @param array $busyDates
-     * @param array $checkDates
-     * @return array
+     * @param array $busyDates busy date(s)
+     * @param array $checkDates date(s) what need checked
+     * @return array Return not busy date(s)
      * Calculates the discrepancy between free and busy dates
      */
     protected function diffCheckDatesBusyDates($busyDates, $checkDates)
@@ -414,9 +421,9 @@ class Events
     }
 
     /**
-     * @param string $recursive
-     * @param integer $repetitionCount
-     * @param string $date
+     * @param string $recursive how often to repeat event
+     * @param integer $repetitionCount count of event repeat
+     * @param string $date first event date
      * @return array
      * Calculates the discrepancy between free and busy dates
      */

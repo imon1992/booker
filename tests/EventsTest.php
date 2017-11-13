@@ -106,25 +106,25 @@ class EventsTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('2017-10-07',$result['weekendDays'][0]);
     }
 
-//    public function testPostEvent4()
-//    {
-//        $_COOKIE['hash']= $this->idHash[0]['hash'];
-//        $_COOKIE['id']= $this->idHash[0]['id'];
-//
-//        $_POST[POST_USER_ID] = json_encode(1);
-//        $_POST[POST_ROOM_ID] = json_encode(1);
-//        $_POST[POST_DESCRIPTION] = json_encode('test desc');
-//        $_POST[POST_EVENT_DATE] = json_encode('2017-10-04');
-//        $_POST[POST_TIME_CREATE] = json_encode('2017-10-02 17:00:00');
-//        $_POST[POST_RECURSIVE] = json_encode(null);
-//        $_POST[POST_TIME_START] = json_encode('18:00:00');
-//        $_POST[POST_TIME_END] = json_encode('19:00:00');
-//        $_POST[POST_REPETITION_COUNT] = json_encode(null);
-//        $_POST[POST_TIME_ZONE] = json_encode(-120);
-//
-//        $result = $this->events->postEvent(false);
-//        $this->assertEquals(true,$result);
-//    }
+    public function testPostEvent4()
+    {
+        $_COOKIE['hash']= $this->idHash[0]['hash'];
+        $_COOKIE['id']= $this->idHash[0]['id'];
+
+        $_POST[POST_USER_ID] = json_encode(1);
+        $_POST[POST_ROOM_ID] = json_encode(1);
+        $_POST[POST_DESCRIPTION] = json_encode('test desc');
+        $_POST[POST_EVENT_DATE] = json_encode('2017-10-04');
+        $_POST[POST_TIME_CREATE] = json_encode('2017-10-02 17:00:00');
+        $_POST[POST_RECURSIVE] = json_encode(null);
+        $_POST[POST_TIME_START] = json_encode('18:00:00');
+        $_POST[POST_TIME_END] = json_encode('19:00:00');
+        $_POST[POST_REPETITION_COUNT] = json_encode(null);
+        $_POST[POST_TIME_ZONE] = json_encode(-120);
+
+        $result = $this->events->postEvent(false);
+        $this->assertEquals(true,$result);
+    }
 
     public function testPutEvent()
     {

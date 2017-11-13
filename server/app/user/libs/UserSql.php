@@ -10,15 +10,20 @@ class UserSql
         $this->dbConnect=DbConnection::getInstance();
     }
 
+    /**
+     * @return array Return array of users(s) info
+     * @return boolean Return false on error or failure.
+     * get all user info
+     */
     public function getUsers()
     {
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('
-                SELECT id,name,isActive
+                SELECT id,name,isActive,email
                 FROM bookerUsers
-                                            ');
+                ');
             $stmt->execute();
             while($assocRow = $stmt->fetch(PDO::FETCH_ASSOC))
             {
@@ -32,13 +37,19 @@ class UserSql
         return $result;
     }
 
+    /**
+     * @param integer $id user id
+     * @return array Return array of user info
+     * @return boolean Return false on error or failure.
+     * get user info
+     */
     public function getUserById($id)
     {
         $result = [];
         if($this->dbConnect !== 'connect error')
         {
             $stmt =$this->dbConnect->prepare('
-                SELECT id, name, email, login
+                SELECT id, name, email, login,isActive
                 FROM bookerUsers 
                 WHERE id=:id
                 ');
@@ -57,6 +68,11 @@ class UserSql
 
     }
 
+    /**
+     * @param array $params params for update
+     * @return boolean Return true is update is successful, false on error or failure.
+     * update user
+     */
     public function updateUser($params)
     {
         if($this->dbConnect !== 'connect error')
@@ -80,6 +96,12 @@ class UserSql
         return $result;
     }
 
+    /**
+     * @param integer $id user id
+     * @param string $isActive active user or removed
+     * @return boolean Return true is delete is successful, false on error or failure.
+     * delete user
+     */
     public function deleteUser($id,$isActive = 'removed')
     {
         if($this->dbConnect !== 'connect error')
@@ -100,6 +122,11 @@ class UserSql
         return $result;
     }
 
+    /**
+     * @param string $params user id
+     * @return string Return string of sql
+     * generate sql for update
+     */
     private function generateUpdateSql($params)
     {
         $arrLength = count($params);
@@ -123,13 +150,4 @@ class UserSql
         $sql .= ' WHERE id=:id';
         return $sql;
     }
-
-
-
-
-
-
-
-
-
 }

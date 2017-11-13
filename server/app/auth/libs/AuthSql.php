@@ -9,6 +9,13 @@ class AuthSql
         $this->dbConnect = DbConnection::getInstance();
     }
 
+    /**
+     * @param string $hash new user hash
+     * @param string $login user Login
+     * @param string $password user password
+     * @return boolean Return true if update is successful and otherwise false
+     * set new hash for user
+     */
     public function setNewHash($hash, $login, $password)
     {
         if ($this->dbConnect !== 'connect error')
@@ -31,6 +38,16 @@ class AuthSql
         return $result;
     }
 
+    /**
+     * @param string $name new user name
+     * @param string $email new user email
+     * @param string $login new user login
+     * @param string $password new user password
+     * @param string $role user role
+     * @param string $isActive active user or removed
+     * @return boolean Return true if create user is successful and otherwise false
+     * create new user
+     */
     public function createNewUser($name, $email, $login, $password, $role = 'user', $isActive = 'active')
     {
         if ($this->dbConnect !== 'connect error')
@@ -56,6 +73,14 @@ class AuthSql
         }
     }
 
+    /**
+     * @param string $login user login
+     * @param string $password user password
+     * @param string $isActive active user or removed
+     * @return boolean Return true if update is successful and otherwise false
+     * @return array Return array of user id and role if we have a user
+     * check have we user or not
+     */
     public function checkUser($login, $password, $isActive = 'active')
     {
         if ($this->dbConnect !== 'connect error')
@@ -84,6 +109,12 @@ class AuthSql
         return $result;
     }
 
+    /**
+     * @param string $login user login
+     * @return boolean Return true if update is successful and otherwise false
+     * @return integer Return count of selected login
+     * check have we this login or not
+     */
     public function checkUserLogin($login)
     {
         if ($this->dbConnect !== 'connect error')
@@ -106,6 +137,13 @@ class AuthSql
         return $result;
     }
 
+    /**
+     * @param string $hash user hash
+     * @param integer $id user hash
+     * @return boolean Return true if update is successful and otherwise false
+     * @return integer
+     * check user is admin or not by hash
+     */
     public function checkAdmin($hash, $id)
     {
         if ($this->dbConnect !== 'connect error')
@@ -129,6 +167,13 @@ class AuthSql
         return $result;
     }
 
+    /**
+     * @param string $hash user hash
+     * @param integer $id user hash
+     * @return boolean Return true if update is successful and otherwise false
+     * @return integer
+     * check have we user with this hash
+     */
     public function checkUserOrAdmin($hash, $id)
     {
         if ($this->dbConnect !== 'connect error')
